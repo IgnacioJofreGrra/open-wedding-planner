@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Monitor, Copy, Check, ExternalLink } from "lucide-react";
+import { useI18n } from "../../i18n/use-i18n";
 
 export function LocalServerStatus() {
+  const { t } = useI18n();
   const [url, setUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -30,26 +32,26 @@ export function LocalServerStatus() {
       <div className="flex items-center gap-2">
         <Monitor className="w-4 h-4 text-on-surface-secondary" />
         <h2 className="text-sm font-semibold text-on-surface">
-          Local Web Server
+          {t("settings.localServer.title")}
         </h2>
       </div>
 
       <p className="text-xs text-on-surface-tertiary">
-        Access the app from any browser on this machine.
+        {t("settings.localServer.description")}
       </p>
 
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-2 flex-1 bg-surface-elevated border border-border rounded-lg px-3 py-2">
           <span className="w-2 h-2 rounded-full bg-success shrink-0" />
           <span className="text-sm text-on-surface font-mono truncate">
-            {url ?? "Starting…"}
+            {url ?? t("settings.localServer.starting")}
           </span>
         </div>
 
         <button
           onClick={handleCopy}
           disabled={!url}
-          title="Copy URL"
+          title={t("settings.localServer.copy")}
           className="p-2 rounded-lg bg-surface-elevated border border-border hover:bg-surface-active transition-colors disabled:opacity-40"
         >
           {copied ? (
@@ -62,7 +64,7 @@ export function LocalServerStatus() {
         <button
           onClick={handleOpen}
           disabled={!url}
-          title="Open in browser"
+          title={t("settings.localServer.open")}
           className="p-2 rounded-lg bg-surface-elevated border border-border hover:bg-surface-active transition-colors disabled:opacity-40"
         >
           <ExternalLink className="w-4 h-4 text-on-surface-secondary" />

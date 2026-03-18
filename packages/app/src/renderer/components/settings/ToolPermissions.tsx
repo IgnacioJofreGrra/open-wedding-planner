@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { wsClient } from "../../lib/ws-client";
 import { Shield } from "lucide-react";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface ToolPermission {
   id: number;
@@ -16,6 +17,7 @@ interface ToolInfo {
 }
 
 export function ToolPermissions() {
+  const { t } = useI18n();
   const [permissions, setPermissions] = useState<ToolPermission[]>([]);
   const [tools, setTools] = useState<ToolInfo[]>([]);
 
@@ -36,10 +38,10 @@ export function ToolPermissions() {
     <div>
       <div className="flex items-center gap-2 mb-4">
         <Shield className="h-5 w-5 text-on-surface-secondary" />
-        <h2 className="text-lg font-semibold">Tool Permissions</h2>
+        <h2 className="text-lg font-semibold">{t("settings.tools.title")}</h2>
       </div>
       <p className="text-sm text-on-surface-secondary mb-4">
-        Control which tools the research agent can use. "Ask each time" will prompt you during research.
+        {t("settings.tools.description")} {t("settings.tools.askEachTimeHelp")}
       </p>
       <div className="space-y-2">
         {tools.map((tool) => {
@@ -57,16 +59,17 @@ export function ToolPermissions() {
                 value={current}
                 onChange={(e) => handleChange(tool.name, e.target.value)}
                 className="text-xs rounded-md border border-border bg-surface-elevated px-2 py-1 text-on-surface-secondary"
+                  style={{ colorScheme: "dark" }}
               >
-                <option value="prompt">Ask each time</option>
-                <option value="allow">Always allow</option>
-                <option value="deny">Always deny</option>
+                <option value="prompt">{t("settings.tools.askEachTime")}</option>
+                <option value="allow">{t("settings.tools.alwaysAllow")}</option>
+                <option value="deny">{t("settings.tools.alwaysDeny")}</option>
               </select>
             </div>
           );
         })}
         {tools.length === 0 && (
-          <p className="text-sm text-on-surface-tertiary">No tools registered.</p>
+          <p className="text-sm text-on-surface-tertiary">{t("settings.tools.none")}</p>
         )}
       </div>
     </div>

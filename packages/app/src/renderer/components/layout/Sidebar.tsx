@@ -12,6 +12,7 @@ import {
   PanelLeft,
 } from "lucide-react";
 import { SidebarItem } from "./SidebarItem";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -19,17 +20,19 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS = [
-  { to: "/", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/research", icon: Search, label: "Research" },
-  { to: "/vendors", icon: Store, label: "Vendors" },
-  { to: "/whatsapp", icon: MessageCircle, label: "WhatsApp" },
-  { to: "/calls", icon: Phone, label: "Calls" },
-  { to: "/inbox", icon: Inbox, label: "Inbox" },
-  { to: "/timeline", icon: Calendar, label: "Timeline" },
-  { to: "/budget", icon: DollarSign, label: "Budget" },
+  { to: "/", icon: LayoutDashboard, labelKey: "nav.dashboard" },
+  { to: "/research", icon: Search, labelKey: "nav.research" },
+  { to: "/vendors", icon: Store, labelKey: "nav.vendors" },
+  { to: "/whatsapp", icon: MessageCircle, labelKey: "nav.whatsapp" },
+  { to: "/calls", icon: Phone, labelKey: "nav.calls" },
+  { to: "/inbox", icon: Inbox, labelKey: "nav.inbox" },
+  { to: "/timeline", icon: Calendar, labelKey: "nav.timeline" },
+  { to: "/budget", icon: DollarSign, labelKey: "nav.budget" },
 ] as const;
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
+  const { t } = useI18n();
+
   return (
     <aside
       className={`flex h-full flex-col border-r border-border bg-surface transition-[width] duration-200 ${
@@ -56,7 +59,13 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-3">
         {NAV_ITEMS.map((item) => (
-          <SidebarItem key={item.to} collapsed={collapsed} {...item} />
+          <SidebarItem
+            key={item.to}
+            to={item.to}
+            icon={item.icon}
+            label={t(item.labelKey)}
+            collapsed={collapsed}
+          />
         ))}
       </nav>
 
@@ -64,7 +73,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 <SidebarItem
           to="/settings"
           icon={Settings}
-          label="Settings"
+          label={t("nav.settings")}
           collapsed={collapsed}
         />
       </div>

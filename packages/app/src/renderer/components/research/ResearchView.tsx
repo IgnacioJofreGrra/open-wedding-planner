@@ -10,6 +10,7 @@ import { ChatMessage } from "./ChatMessage";
 import { ComposeBox, type SlashCommand } from "../common/ComposeBox";
 import { PermissionRequestCard } from "./PermissionRequestCard";
 import { TokenUsageBar } from "./TokenUsageBar";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface Thread {
   id: number;
@@ -32,6 +33,7 @@ interface Message {
 }
 
 export function ResearchView() {
+  const { t } = useI18n();
   const {
     activeThreadId,
     activeSession,
@@ -156,7 +158,7 @@ export function ResearchView() {
 
   // Handlers
   async function handleCreateThread() {
-    const thread = await createThread({ title: "New research" });
+    const thread = await createThread({ title: t("research.newThread") });
     setActiveThreadId(thread.id);
     refetchThreads();
   }
@@ -260,9 +262,9 @@ export function ResearchView() {
   }
 
   const slashCommands: SlashCommand[] = [
-    { name: "compact", description: "Summarize conversation to save context" },
-    { name: "clear", description: "Clear all messages in this thread" },
-    { name: "model", description: "Switch AI model", args: "<model-name>" },
+    { name: "compact", description: t("research.slash.compact") },
+    { name: "clear", description: t("research.slash.clear") },
+    { name: "model", description: t("research.slash.model"), args: "<model-name>" },
   ];
 
   async function handleSlashCommand(command: string, args: string) {
@@ -315,11 +317,9 @@ export function ResearchView() {
                     className="my-4 flex items-center gap-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3"
                   >
                     <div className="flex-1">
-                      <p className="text-xs font-medium text-amber-400">
-                        Conversation compacted
-                      </p>
+                      <p className="text-xs font-medium text-amber-400">{t("research.systemCompacted.title")}</p>
                       <p className="mt-0.5 text-xs text-on-surface-tertiary">
-                        Earlier messages were summarized to stay within the context window. Scroll up to see the full history.
+                        {t("research.systemCompacted.body")}
                       </p>
                     </div>
                   </div>
@@ -338,14 +338,14 @@ export function ResearchView() {
               {(researching || (activeSession && isSessionThread)) && (
                 <div className="py-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-purple-400">Assistant</span>
+                    <span className="text-xs font-medium text-purple-400">{t("research.assistant")}</span>
                     {activeSession && (
                       <button
                         onClick={handleStop}
                         className="flex items-center gap-1 rounded-md border border-border bg-surface-elevated px-2 py-1 text-xs text-on-surface-secondary hover:bg-surface-active hover:text-on-surface transition-colors"
                       >
                         <Square className="h-3 w-3" />
-                        Stop
+                        {t("research.stop")}
                       </button>
                     )}
                   </div>
@@ -355,7 +355,7 @@ export function ResearchView() {
                         {liveToolCalls.length > 1 && (
                           <div className="flex items-center gap-1.5 text-xs text-on-surface-faint">
                             <Wrench className="h-3 w-3" />
-                            <span>{liveToolCalls.length} tool calls</span>
+                            <span>{liveToolCalls.length} {t("research.toolCalls")}</span>
                           </div>
                         )}
                         <div className="flex items-center gap-2 text-xs text-on-surface-tertiary">
@@ -366,7 +366,7 @@ export function ResearchView() {
                     ) : (
                       <div className="flex items-center gap-2 text-xs text-on-surface-tertiary">
                         <span className="h-1.5 w-1.5 rounded-full bg-purple-400 animate-pulse" />
-                        <span>Thinking...</span>
+                        <span>{t("research.thinking")}</span>
                       </div>
                     )}
                   </div>
@@ -390,7 +390,7 @@ export function ResearchView() {
           ) : (
             <div className="flex items-center justify-center h-full text-on-surface-tertiary">
               <p className="text-sm">
-                Start a new research thread or select one from the sidebar.
+                {t("research.empty")}
               </p>
             </div>
           )}

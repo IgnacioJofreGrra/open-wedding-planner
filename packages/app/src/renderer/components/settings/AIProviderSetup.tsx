@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { wsClient } from "../../lib/ws-client";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface AIConfig {
   provider: string;
@@ -13,6 +14,7 @@ interface AIConfig {
 }
 
 export function AIProviderSetup() {
+  const { t } = useI18n();
   const [config, setConfig] = useState<AIConfig | null>(null);
   const [provider, setProvider] = useState("anthropic");
   const [baseUrl, setBaseUrl] = useState("");
@@ -55,7 +57,7 @@ export function AIProviderSetup() {
     } catch (err) {
       setValidationResult({
         valid: false,
-        error: err instanceof Error ? err.message : "Validation failed",
+        error: err instanceof Error ? err.message : t("settings.search.validationFailed"),
       });
     } finally {
       setValidating(false);
@@ -94,11 +96,11 @@ export function AIProviderSetup() {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-4">AI Provider</h2>
+      <h2 className="text-lg font-semibold mb-4">{t("settings.ai.title")}</h2>
       <div className="space-y-4">
         {/* Provider selector */}
         <div className="space-y-2">
-          <label className="block text-sm text-on-surface-secondary">Provider</label>
+          <label className="block text-sm text-on-surface-secondary">{t("settings.ai.provider")}</label>
           <select
             value={provider}
             onChange={(e) => {
@@ -122,7 +124,7 @@ export function AIProviderSetup() {
         {/* Base URL */}
         {(provider === "ollama" || provider === "custom" || provider === "openrouter") && (
           <div className="space-y-2">
-            <label className="block text-sm text-on-surface-secondary">Base URL</label>
+            <label className="block text-sm text-on-surface-secondary">{t("settings.ai.baseUrl")}</label>
             <input
               type="text"
               value={baseUrl}
@@ -145,15 +147,15 @@ export function AIProviderSetup() {
             />
             <p className="text-xs text-on-surface-secondary">
               {config.hasApiKey
-                ? `Key set (${config.maskedApiKey})`
-                : "No API key configured"}
+                ? `${t("settings.ai.keySet")} (${config.maskedApiKey})`
+                : t("settings.search.noApi")}
             </p>
           </div>
 
           {/* Key input */}
           <div className="space-y-2">
             <label className="block text-sm text-on-surface-secondary">
-              {config.hasApiKey ? "Update Key" : "API Key or Setup Token"}
+              {config.hasApiKey ? t("settings.ai.updateKey") : t("settings.ai.apiOrToken")}
             </label>
             <div className="flex gap-2">
               <input
@@ -168,7 +170,7 @@ export function AIProviderSetup() {
                   provider === "openai" ? "sk-..." :
                   provider === "google" ? "AIza..." :
                   provider === "openrouter" ? "sk-or-..." :
-                  "API key"
+                  t("settings.search.apiKey")
                 }
                 className="flex-1 rounded-md border border-border bg-surface-elevated px-3 py-2 text-sm text-on-surface placeholder-placeholder focus:border-accent focus:outline-none"
               />
@@ -177,7 +179,7 @@ export function AIProviderSetup() {
                 disabled={!apiKey || validating}
                 className="rounded-md border border-border bg-surface-elevated px-3 py-2 text-sm text-on-surface-secondary hover:bg-surface-active disabled:opacity-50"
               >
-                {validating ? "Testing..." : "Validate"}
+                {validating ? t("settings.search.testing") : t("settings.search.validate")}
               </button>
             </div>
           </div>
@@ -188,8 +190,8 @@ export function AIProviderSetup() {
               className={`text-xs ${validationResult.valid ? "text-success" : "text-error"}`}
             >
               {validationResult.valid
-                ? "Key is valid"
-                : `Invalid: ${validationResult.error}`}
+                ? t("settings.ai.keyValid")
+                : `${t("settings.search.invalid")}: ${validationResult.error}`}
             </p>
           )}
 
@@ -209,7 +211,7 @@ export function AIProviderSetup() {
 
         {/* Model selector */}
         <div className="space-y-2">
-          <label className="block text-sm text-on-surface-secondary">Model</label>
+          <label className="block text-sm text-on-surface-secondary">{t("settings.ai.model")}</label>
           {models.length > 0 ? (
             <select
               value={model}
@@ -247,11 +249,9 @@ export function AIProviderSetup() {
         <div className="space-y-2 rounded-lg border border-border bg-surface-elevated px-4 py-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-on-surface">
-                OpenAI API Key
-              </p>
+              <p className="text-sm font-medium text-on-surface">{t("settings.ai.openaiKey")}</p>
               <p className="text-xs text-on-surface-secondary">
-                Required for semantic search across your data
+                {t("settings.ai.openaiKeyDescription")}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -262,8 +262,8 @@ export function AIProviderSetup() {
               />
               <p className="text-xs text-on-surface-secondary">
                 {config.hasOpenaiApiKey
-                  ? `Set (${config.maskedOpenaiApiKey})`
-                  : "Not configured"}
+                  ? `${t("settings.ai.set")} (${config.maskedOpenaiApiKey})`
+                  : t("settings.ai.notConfigured")}
               </p>
             </div>
           </div>
@@ -292,7 +292,7 @@ export function AIProviderSetup() {
             disabled={saving}
             className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50"
           >
-            {saving ? "Saving..." : "Save"}
+            {saving ? t("settings.search.saving") : t("settings.search.save")}
           </button>
         )}
       </div>

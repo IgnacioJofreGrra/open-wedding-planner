@@ -15,10 +15,10 @@ import {
 import { pipeline } from "node:stream/promises";
 import { execSync } from "node:child_process";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const appDir = path
-  .dirname(new URL(import.meta.url).pathname)
-  .replace("/scripts", "");
+const scriptsDir = path.dirname(fileURLToPath(import.meta.url));
+const appDir = path.dirname(scriptsDir);
 const destDir = path.join(appDir, "cloudflared");
 mkdirSync(destDir, { recursive: true });
 

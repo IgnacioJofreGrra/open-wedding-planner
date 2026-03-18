@@ -10,11 +10,20 @@ import { VendorNotes } from "./VendorNotes";
 import { VendorPhotos } from "./VendorPhotos";
 import { Skeleton } from "../common/Skeleton";
 import { ConfirmDialog } from "../common/ConfirmDialog";
+import { useI18n } from "../../i18n/use-i18n";
 
 const TABS = ["Overview", "Photos", "Quotes", "Communications", "Notes"] as const;
+const TAB_KEYS = {
+  Overview: "vendor.detail.tab.overview",
+  Photos: "vendor.detail.tab.photos",
+  Quotes: "vendor.detail.tab.quotes",
+  Communications: "vendor.detail.tab.communications",
+  Notes: "vendor.detail.tab.notes",
+} as const;
 type Tab = (typeof TABS)[number];
 
 export function VendorDetailView() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const vendorId = Number(id);
   const navigate = useNavigate();
@@ -46,9 +55,7 @@ export function VendorDetailView() {
 
   if (!vendor) {
     return (
-      <div className="flex h-full items-center justify-center text-on-surface-tertiary">
-        Vendor not found
-      </div>
+      <div className="flex h-full items-center justify-center text-on-surface-tertiary">{t("vendor.detail.notFound")}</div>
     );
   }
 
@@ -72,7 +79,7 @@ export function VendorDetailView() {
                   : "text-on-surface-secondary hover:text-on-surface"
               }`}
             >
-              {tab}
+              {t(TAB_KEYS[tab])}
             </button>
           ))}
         </div>
@@ -93,8 +100,8 @@ export function VendorDetailView() {
 
       <ConfirmDialog
         open={showDeleteConfirm}
-        title={`Delete ${vendor.name}?`}
-        message="This will permanently delete this vendor and all related quotes, communications, and research notes."
+        title={t("vendor.detail.delete.title").replace("{{name}}", vendor.name)}
+        message={t("vendor.detail.delete.message")}
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteConfirm(false)}
         loading={deleting}

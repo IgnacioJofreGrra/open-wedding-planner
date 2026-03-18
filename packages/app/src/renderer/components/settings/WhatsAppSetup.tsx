@@ -2,6 +2,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { useMutation } from "../../hooks/useRequest";
 import { StatusIndicator } from "./IntegrationStatus";
 import { MessageCircle } from "lucide-react";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface WhatsAppSetupProps {
   status: "disconnected" | "connecting" | "connected";
@@ -11,6 +12,7 @@ interface WhatsAppSetupProps {
 }
 
 export function WhatsAppSetup({ status, qrCode, autoSend, onAutoSendChange }: WhatsAppSetupProps) {
+  const { t } = useI18n();
   const { mutate: connect, loading: connecting } = useMutation(
     "whatsapp.connect",
   );
@@ -32,7 +34,7 @@ export function WhatsAppSetup({ status, qrCode, autoSend, onAutoSendChange }: Wh
           <div>
             <p className="text-sm font-medium text-on-surface">WhatsApp</p>
             <p className="text-xs text-on-surface-secondary">
-              Send and receive messages via WhatsApp
+              {t("settings.whatsapp.description")}
             </p>
           </div>
         </div>
@@ -45,27 +47,27 @@ export function WhatsAppSetup({ status, qrCode, autoSend, onAutoSendChange }: Wh
           disabled={connecting}
           className="w-full rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
         >
-          {connecting ? "Starting..." : "Connect WhatsApp"}
+          {connecting ? t("settings.whatsapp.starting") : t("settings.whatsapp.connect")}
         </button>
       )}
 
       {qrCode && status === "connecting" && (
         <div className="flex flex-col items-center gap-3 py-4">
           <p className="text-sm text-on-surface-secondary">
-            Scan this QR code with WhatsApp on your phone
+            {t("settings.whatsapp.scanQr")}
           </p>
           <div className="rounded-xl bg-white p-4">
             <QRCodeSVG value={qrCode} size={256} />
           </div>
           <p className="text-xs text-on-surface-tertiary">
-            Open WhatsApp &gt; Settings &gt; Linked Devices &gt; Link a Device
+            {t("settings.whatsapp.qrHelp")}
           </p>
         </div>
       )}
 
       {status === "connecting" && !qrCode && (
         <p className="text-sm text-warning animate-pulse">
-          Waiting for QR code...
+          {t("settings.whatsapp.waitingQr")}
         </p>
       )}
 
@@ -73,9 +75,9 @@ export function WhatsAppSetup({ status, qrCode, autoSend, onAutoSendChange }: Wh
         <div className="space-y-3">
           <div className="flex items-center justify-between rounded-lg border border-border bg-surface-elevated px-4 py-3">
             <div>
-              <p className="text-sm font-medium text-on-surface">Auto-send messages</p>
+              <p className="text-sm font-medium text-on-surface">{t("settings.whatsapp.autoSend")}</p>
               <p className="text-xs text-on-surface-secondary">
-                When off, outgoing messages are saved as drafts for your review
+                {t("settings.whatsapp.autoSendDescription")}
               </p>
             </div>
             <button
@@ -96,7 +98,7 @@ export function WhatsAppSetup({ status, qrCode, autoSend, onAutoSendChange }: Wh
             onClick={handleDisconnect}
             className="w-full rounded-lg border border-error/30 px-4 py-2 text-sm text-error hover:bg-error-bg transition-colors"
           >
-            Disconnect
+            {t("settings.whatsapp.disconnect")}
           </button>
         </div>
       )}

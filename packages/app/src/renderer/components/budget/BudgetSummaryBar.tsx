@@ -1,4 +1,5 @@
 import { CurrencyDisplay } from "../common/CurrencyDisplay";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface BudgetSummaryBarProps {
   totalBudget: number | null;
@@ -13,6 +14,7 @@ export function BudgetSummaryBar({
   totalPaid,
   currency = "EUR",
 }: BudgetSummaryBarProps) {
+  const { t } = useI18n();
   const budget = totalBudget ?? estimatedActual;
   const utilization = budget > 0 ? (estimatedActual / budget) * 100 : 0;
 
@@ -30,23 +32,23 @@ export function BudgetSummaryBar({
     <div className="rounded-xl border border-border bg-surface-elevated p-4 space-y-3">
       <div className="flex items-end justify-between">
         <div>
-          <p className="text-sm text-on-surface-secondary">Budget Utilization</p>
+          <p className="text-sm text-on-surface-secondary">{t("budget.summary.utilization")}</p>
           <p className={`text-2xl font-bold ${textColor}`}>
             {utilization.toFixed(0)}%
           </p>
         </div>
         <div className="text-right space-y-1">
           <div className="text-sm">
-            <span className="text-on-surface-secondary">Estimated: </span>
+            <span className="text-on-surface-secondary">{t("budget.summary.estimated")}: </span>
             <CurrencyDisplay amount={estimatedActual} currency={currency} className="text-on-surface font-medium" />
           </div>
           <div className="text-sm">
-            <span className="text-on-surface-secondary">Paid: </span>
+            <span className="text-on-surface-secondary">{t("budget.summary.paid")}: </span>
             <CurrencyDisplay amount={totalPaid} currency={currency} className="text-on-surface font-medium" />
           </div>
           {totalBudget != null && (
             <div className="text-sm">
-              <span className="text-on-surface-secondary">Budget: </span>
+              <span className="text-on-surface-secondary">{t("budget.summary.budget")}: </span>
               <CurrencyDisplay amount={totalBudget} currency={currency} className="text-on-surface font-medium" />
             </div>
           )}

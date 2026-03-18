@@ -6,8 +6,10 @@ import { AgentSidePanel } from "../common/AgentSidePanel";
 import { EmptyState } from "../common/EmptyState";
 import { MessageSquare } from "lucide-react";
 import type { GatewayEvent } from "@wedding-planner/shared";
+import { useI18n } from "../../i18n/use-i18n";
 
 export function VendorComms({ vendorId }: { vendorId: number }) {
+  const { t } = useI18n();
   const [sidePanelComm, setSidePanelComm] = useState<Communication | null>(null);
 
   const {
@@ -58,8 +60,8 @@ export function VendorComms({ vendorId }: { vendorId: number }) {
     return (
       <EmptyState
         icon={MessageSquare}
-        title="No communications yet"
-        description="WhatsApp and email messages with this vendor will appear here"
+          title={t("vendor.comms.empty.title")}
+          description={t("vendor.comms.empty.description")}
       />
     );
   }

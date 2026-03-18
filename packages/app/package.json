@@ -5,7 +5,7 @@
   "description": "AI-powered wedding planning assistant",
   "main": "./out/main/index.js",
   "scripts": {
-    "dev": "unset ELECTRON_RUN_AS_NODE && electron-vite dev",
+    "dev": "node scripts/dev.mjs",
     "build": "electron-vite build && vite build --config vite.web.config.ts",
     "build:web": "vite build --config vite.web.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Send } from "lucide-react";
+import { useI18n } from "../../i18n/use-i18n";
 
 export interface SlashCommand {
   name: string;
@@ -20,8 +21,10 @@ export function ComposeBox({
   onSlashCommand,
   slashCommands,
   disabled = false,
-  placeholder = "Ask about vendors, venues, pricing...",
+  placeholder,
 }: ComposeBoxProps) {
+  const { t } = useI18n();
+  const effectivePlaceholder = placeholder ?? t("compose.placeholder.default");
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [showCommands, setShowCommands] = useState(false);
@@ -134,7 +137,7 @@ export function ComposeBox({
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={disabled}
-          placeholder={placeholder}
+          placeholder={effectivePlaceholder}
           rows={1}
           className="w-full resize-none rounded-lg border border-border bg-surface-elevated pl-3 pr-9 py-2 text-sm text-on-surface placeholder-placeholder focus:outline-none focus:border-border-hover disabled:opacity-50 leading-5 overflow-hidden"
         />

@@ -1,5 +1,6 @@
 import { useRequest } from "../../hooks/useRequest";
 import { Card, CardHeader, CardContent } from "../common/Card";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface VendorAttribute {
   id: number;
@@ -9,6 +10,7 @@ interface VendorAttribute {
 }
 
 export function VendorAttributes({ vendorId }: { vendorId: number }) {
+  const { t } = useI18n();
   const { data: attributes, loading } = useRequest<VendorAttribute[]>(
     "vendor-attributes.list",
     { vendorId },
@@ -20,7 +22,7 @@ export function VendorAttributes({ vendorId }: { vendorId: number }) {
   return (
     <Card>
       <CardHeader>
-        <h3 className="text-sm font-semibold">Attributes</h3>
+        <h3 className="text-sm font-semibold">{t("vendor.attributes.title")}</h3>
       </CardHeader>
       <CardContent>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">

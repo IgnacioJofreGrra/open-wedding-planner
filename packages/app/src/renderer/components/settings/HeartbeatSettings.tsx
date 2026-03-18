@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { wsClient } from "../../lib/ws-client";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface HeartbeatConfig {
   enabled: number;
@@ -8,14 +9,10 @@ interface HeartbeatConfig {
   lastRunAt: string | null;
 }
 
-const INTERVAL_OPTIONS = [
-  { value: 15, label: "Every 15 minutes" },
-  { value: 30, label: "Every 30 minutes" },
-  { value: 60, label: "Every hour" },
-  { value: 120, label: "Every 2 hours" },
-];
+const INTERVAL_OPTIONS = [15, 30, 60, 120] as const;
 
 export function HeartbeatSettings() {
+  const { t } = useI18n();
   const [config, setConfig] = useState<HeartbeatConfig | null>(null);
   const [enabled, setEnabled] = useState(false);
   const [prompt, setPrompt] = useState("");
@@ -56,7 +53,7 @@ export function HeartbeatSettings() {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-4">Agent Heartbeat</h2>
+      <h2 className="text-lg font-semibold mb-4">{t("settings.heartbeat.title")}</h2>
       <div className="space-y-4">
         {/* Enable toggle */}
         <label className="flex items-center gap-3 cursor-pointer">
@@ -68,21 +65,21 @@ export function HeartbeatSettings() {
           />
           <div>
             <p className="text-sm font-medium text-on-surface">
-              Enable autonomous agent
+              {t("settings.heartbeat.enable")}
             </p>
             <p className="text-xs text-on-surface-secondary">
-              The agent will autonomously research, reach out, and follow up on your behalf
+              {t("settings.heartbeat.description")}
             </p>
           </div>
         </label>
 
         {/* Prompt */}
         <div className="space-y-2">
-          <label className="block text-sm text-on-surface-secondary">Research prompt</label>
+          <label className="block text-sm text-on-surface-secondary">{t("settings.heartbeat.prompt")}</label>
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="e.g. Find florists in Tuscany under €3,000. Check for availability on our wedding date."
+            placeholder={t("settings.heartbeat.promptPlaceholder")}
             rows={4}
             className="w-full rounded-md border border-border bg-surface-elevated px-3 py-2 text-sm text-on-surface placeholder-placeholder focus:border-accent focus:outline-none resize-y"
           />
@@ -90,15 +87,19 @@ export function HeartbeatSettings() {
 
         {/* Interval */}
         <div className="space-y-2">
-          <label className="block text-sm text-on-surface-secondary">Run frequency</label>
+          <label className="block text-sm text-on-surface-secondary">{t("settings.heartbeat.frequency")}</label>
           <select
             value={intervalMinutes}
             onChange={(e) => setIntervalMinutes(Number(e.target.value))}
             className="w-full rounded-md border border-border bg-surface-elevated px-3 py-2 text-sm text-on-surface focus:border-accent focus:outline-none"
+              style={{ colorScheme: "dark" }}
           >
-            {INTERVAL_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
+            {INTERVAL_OPTIONS.map((value) => (
+              <option key={value} value={value}>
+                {value === 15 && t("settings.heartbeat.every15")}
+                {value === 30 && t("settings.heartbeat.every30")}
+                {value === 60 && t("settings.heartbeat.every60")}
+                {value === 120 && t("settings.heartbeat.every120")}
               </option>
             ))}
           </select>
@@ -107,7 +108,7 @@ export function HeartbeatSettings() {
         {/* Last run info */}
         {config.lastRunAt && (
           <p className="text-xs text-on-surface-tertiary">
-            Last run: {new Date(config.lastRunAt).toLocaleString()}
+            {t("settings.heartbeat.lastRun")}: {new Date(config.lastRunAt).toLocaleString()}
           </p>
         )}
 
@@ -118,7 +119,7 @@ export function HeartbeatSettings() {
             disabled={saving}
             className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50"
           >
-            {saving ? "Saving..." : "Save"}
+            {saving ? t("settings.search.saving") : t("settings.search.save")}
           </button>
         )}
       </div>

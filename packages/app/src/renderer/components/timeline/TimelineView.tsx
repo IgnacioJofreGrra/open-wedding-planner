@@ -12,6 +12,7 @@ import {
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface Task {
   id: number;
@@ -26,7 +27,7 @@ interface Task {
   createdAt: string;
 }
 
-function groupByMonth(tasks: Task[]): Map<string, Task[]> {
+function groupByMonth(tasks: Task[], locale: "es" | "en", noDeadlineLabel: string): Map<string, Task[]> {
   const groups = new Map<string, Task[]>();
   const noDate: Task[] = [];
 
@@ -34,7 +35,7 @@ function groupByMonth(tasks: Task[]): Map<string, Task[]> {
     if (task.deadline) {
       const date = new Date(task.deadline);
       const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-      const label = date.toLocaleDateString("en-US", {
+      const label = date.toLocaleDateString(locale === "es" ? "es-ES" : "en-US", {
         year: "numeric",
         month: "long",
       });
@@ -51,13 +52,14 @@ function groupByMonth(tasks: Task[]): Map<string, Task[]> {
   }
 
   if (noDate.length > 0) {
-    groups.set("No deadline", noDate);
+    groups.set(noDeadlineLabel, noDate);
   }
 
   return groups;
 }
 
 export function TimelineView() {
+  const { t, language } = useI18n();
   const { data: tasks, loading, refetch } = useRequest<Task[]>("tasks.list", undefined, { refreshOn: "tasks" });
   const { mutate: createTask } = useMutation<Partial<Task>, Task>("tasks.create");
   const { mutate: updateTask } = useMutation<Partial<Task> & { id: number }, Task>(
@@ -102,7 +104,7 @@ export function TimelineView() {
   if (loading) {
     return (
       <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Timeline</h1>
+        <h1 className="text-2xl font-bold mb-6">{t("timeline.title")}</h1>
         <div className="animate-pulse space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-20 rounded-xl bg-surface-elevated" />
@@ -112,18 +114,18 @@ export function TimelineView() {
     );
   }
 
-  const grouped = groupByMonth(tasks ?? []);
+  const grouped = groupByMonth(tasks ?? [], language, t("timeline.noDeadline"));
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Timeline</h1>
+        <h1 className="text-2xl font-bold">{t("timeline.title")}</h1>
         <button
           onClick={() => setShowForm(!showForm)}
           className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
         >
           <Plus className="h-4 w-4" />
-          Add Task
+          {t("timeline.addTask")}
         </button>
       </div>
 
@@ -135,7 +137,7 @@ export function TimelineView() {
                 type="text"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="Task title"
+                placeholder={t("timeline.taskTitle")}
                 className="w-full rounded-lg border border-border bg-surface-elevated px-3 py-2 text-sm text-on-surface placeholder-placeholder focus:border-blue-500 focus:outline-none"
                 autoFocus
               />
@@ -150,7 +152,7 @@ export function TimelineView() {
                   type="text"
                   value={newOwner}
                   onChange={(e) => setNewOwner(e.target.value)}
-                  placeholder="Owner"
+                  placeholder={t("timeline.owner")}
                   className="flex-1 rounded-lg border border-border bg-surface-elevated px-3 py-2 text-sm text-on-surface placeholder-placeholder focus:border-blue-500 focus:outline-none"
                 />
               </div>
@@ -160,13 +162,13 @@ export function TimelineView() {
                   onClick={() => setShowForm(false)}
                   className="rounded-lg border border-border px-3 py-1.5 text-sm text-on-surface-secondary hover:text-on-surface transition-colors"
                 >
-                  Cancel
+                  {t("timeline.cancel")}
                 </button>
                 <button
                   type="submit"
                   className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
                 >
-                  Create
+                  {t("timeline.create")}
                 </button>
               </div>
             </form>
@@ -177,14 +179,14 @@ export function TimelineView() {
       {(!tasks || tasks.length === 0) && !showForm ? (
         <EmptyState
           icon={CalendarDays}
-          title="No tasks yet"
-          description="Create tasks to track your wedding planning timeline."
+          title={t("timeline.empty.title")}
+          description={t("timeline.empty.description")}
           action={
             <button
               onClick={() => setShowForm(true)}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
             >
-              Create First Task
+              {t("timeline.createFirstTask")}
             </button>
           }
         />
@@ -250,7 +252,7 @@ function TimelineTask({
 
   return (
     <div className="flex items-center gap-3 py-2 group">
-      <button onClick={onToggle} className="flex-shrink-0">
+      <button onClick={onToggle} className="shrink-0">
         {isDone ? (
           <CheckCircle2 className="h-4 w-4 text-success" />
         ) : (
@@ -266,7 +268,7 @@ function TimelineTask({
           {task.title}
         </span>
       </div>
-      <div className="flex items-center gap-2 flex-shrink-0">
+      <div className="flex items-center gap-2 shrink-0">
         {task.owner && (
           <Badge variant="default">{task.owner}</Badge>
         )}

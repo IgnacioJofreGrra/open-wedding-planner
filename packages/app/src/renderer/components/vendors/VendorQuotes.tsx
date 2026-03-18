@@ -6,6 +6,7 @@ import { CurrencyDisplay } from "../common/CurrencyDisplay";
 import { QuoteLineItems } from "./QuoteLineItems";
 import { Skeleton } from "../common/Skeleton";
 import { ConfirmDialog } from "../common/ConfirmDialog";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface Quote {
   id: number;
@@ -39,6 +40,7 @@ function QuoteCard({
   currency: string;
   onDeleted: () => void;
 }) {
+  const { t } = useI18n();
   const { data: quote, loading } = useRequest<QuoteWithItems>("quotes.get", {
     id: quoteId,
   });
@@ -78,7 +80,7 @@ function QuoteCard({
               <CurrencyDisplay amount={displayTotal} currency={currency} />
             </span>
             {quote.source && (
-              <span className="ml-2 text-xs text-on-surface-tertiary">via {quote.source}</span>
+              <span className="ml-2 text-xs text-on-surface-tertiary">{t("vendor.quotes.via")} {quote.source}</span>
             )}
           </div>
           <div className="flex items-center gap-2">
@@ -102,8 +104,8 @@ function QuoteCard({
 
       <ConfirmDialog
         open={showConfirm}
-        title="Delete quote?"
-        message={`Delete this ${currency} ${displayTotal.toLocaleString()} quote and all its line items?`}
+        title={t("vendor.quotes.delete.title")}
+        message={t("vendor.quotes.delete.message").replace("{{currency}}", currency).replace("{{amount}}", displayTotal.toLocaleString())}
         onConfirm={handleDelete}
         onCancel={() => setShowConfirm(false)}
         loading={deleting}
@@ -113,6 +115,7 @@ function QuoteCard({
 }
 
 export function VendorQuotes({ vendorId }: { vendorId: number }) {
+  const { t } = useI18n();
   const { data: quotesList, loading, refetch } = useRequest<Quote[]>("quotes.list", {
     vendorId,
   });
@@ -127,7 +130,7 @@ export function VendorQuotes({ vendorId }: { vendorId: number }) {
 
   if (!quotesList || quotesList.length === 0) {
     return (
-      <p className="text-sm text-on-surface-tertiary py-4">No quotes yet</p>
+      <p className="text-sm text-on-surface-tertiary py-4">{t("vendor.quotes.empty")}</p>
     );
   }
 

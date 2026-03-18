@@ -6,6 +6,7 @@ import { VendorActions } from "./VendorActions";
 import { EmailComposeModal } from "./EmailComposeModal";
 import { useVendorImages } from "../../hooks/useVendorImages";
 import { wsClient } from "../../lib/ws-client";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface Vendor {
   id: number;
@@ -28,6 +29,7 @@ export function VendorHeader({
   onStatusChange: (status: string) => void;
   onDelete: () => void;
 }) {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [imgError, setImgError] = useState(false);
   const [showEmailCompose, setShowEmailCompose] = useState(false);
@@ -45,7 +47,7 @@ export function VendorHeader({
         className="flex items-center gap-1 text-sm text-on-surface-secondary hover:text-on-surface transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to vendors
+        {t("vendor.header.back")}
       </button>
 
       <div className="flex items-start justify-between gap-4">
@@ -117,7 +119,7 @@ export function VendorHeader({
               className="flex items-center gap-1.5 rounded-lg border border-blue-500/30 px-3 py-1.5 text-sm text-blue-400 hover:bg-blue-500/10 transition-colors"
             >
               <Mail className="h-3.5 w-3.5" />
-              Email
+              {t("vendor.header.email")}
             </button>
           )}
           <button
@@ -125,7 +127,7 @@ export function VendorHeader({
             className="flex items-center gap-1.5 rounded-lg border border-red-500/30 px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
           >
             <Trash2 className="h-3.5 w-3.5" />
-            Delete
+            {t("vendor.header.delete")}
           </button>
           <VendorActions vendor={vendor} onStatusChange={onStatusChange} />
         </div>

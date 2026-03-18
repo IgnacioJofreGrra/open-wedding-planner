@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { wsClient } from "../../lib/ws-client";
 import { ConfirmDeleteDialog } from "../common/ConfirmDeleteDialog";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface ClearGroup {
   key: string;
@@ -10,37 +11,38 @@ interface ClearGroup {
   method: string;
 }
 
-const CLEAR_GROUPS: ClearGroup[] = [
-  {
-    key: "vendors",
-    label: "Vendors",
-    description: "Remove all vendors, their photos, quotes, and attributes",
-    method: "data.clear-vendors",
-  },
-  {
-    key: "research",
-    label: "Research",
-    description: "Remove all research conversations and notes",
-    method: "data.clear-research",
-  },
-  {
-    key: "communications",
-    label: "Communications",
-    description: "Remove all email and WhatsApp message history",
-    method: "data.clear-communications",
-  },
-  {
-    key: "tasks",
-    label: "Tasks & Budget",
-    description: "Remove all tasks and budget entries",
-    method: "data.clear-tasks",
-  },
-];
-
 export function DataManagement() {
+  const { t } = useI18n();
   const [clearing, setClearing] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const CLEAR_GROUPS: ClearGroup[] = [
+    {
+      key: "vendors",
+      label: t("settings.data.vendors.label"),
+      description: t("settings.data.vendors.description"),
+      method: "data.clear-vendors",
+    },
+    {
+      key: "research",
+      label: t("settings.data.research.label"),
+      description: t("settings.data.research.description"),
+      method: "data.clear-research",
+    },
+    {
+      key: "communications",
+      label: t("settings.data.communications.label"),
+      description: t("settings.data.communications.description"),
+      method: "data.clear-communications",
+    },
+    {
+      key: "tasks",
+      label: t("settings.data.tasks.label"),
+      description: t("settings.data.tasks.description"),
+      method: "data.clear-tasks",
+    },
+  ];
 
   async function handleClear() {
     if (!clearing) return;
@@ -62,9 +64,9 @@ export function DataManagement() {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-1">Data Management</h2>
+      <h2 className="text-lg font-semibold mb-1">{t("settings.data.title")}</h2>
       <p className="text-sm text-on-surface-secondary mb-4">
-        Clear accumulated data while keeping your settings intact.
+        {t("settings.data.description")}
       </p>
 
       <div className="space-y-3">
@@ -78,14 +80,14 @@ export function DataManagement() {
               <p className="text-xs text-on-surface-secondary">{group.description}</p>
             </div>
             {success === group.key ? (
-              <span className="text-xs text-success">Cleared</span>
+              <span className="text-xs text-success">{t("settings.data.cleared")}</span>
             ) : (
               <button
                 onClick={() => setClearing(group.key)}
                 className="flex items-center gap-1.5 rounded-lg bg-error-bg px-3 py-1.5 text-sm font-medium text-error hover:bg-error-bg/80 transition-colors"
               >
                 <Trash2 className="h-3.5 w-3.5" />
-                Clear
+                {t("settings.data.clear")}
               </button>
             )}
           </div>
@@ -94,8 +96,8 @@ export function DataManagement() {
 
       <ConfirmDeleteDialog
         open={clearing !== null}
-        title={`Clear ${CLEAR_GROUPS.find((g) => g.key === clearing)?.label ?? ""} Data`}
-        message={`This will permanently delete all ${CLEAR_GROUPS.find((g) => g.key === clearing)?.label.toLowerCase() ?? ""} data. This cannot be undone.`}
+        title={t("settings.data.dialog.title").replace("{{group}}", CLEAR_GROUPS.find((g) => g.key === clearing)?.label ?? "")}
+        message={t("settings.data.dialog.message").replace("{{group}}", (CLEAR_GROUPS.find((g) => g.key === clearing)?.label ?? "").toLowerCase())}
         onConfirm={handleClear}
         onCancel={() => setClearing(null)}
         loading={loading}

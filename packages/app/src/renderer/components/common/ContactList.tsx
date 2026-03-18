@@ -1,4 +1,5 @@
 import { MessageCircle, SquarePen } from "lucide-react";
+import { useI18n } from "../../i18n/use-i18n";
 
 export interface ContactSummary {
   vendorId: number;
@@ -17,15 +18,16 @@ interface ContactListProps {
 }
 
 export function ContactList({ contacts, selectedVendorId, onSelect, onNew }: ContactListProps) {
+  const { t } = useI18n();
   return (
     <div className="flex flex-col h-full border-r border-border">
       <div className="p-3 border-b border-border flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-on-surface">Conversations</h2>
+        <h2 className="text-sm font-semibold text-on-surface">{t("contactList.title")}</h2>
         {onNew && (
           <button
             onClick={onNew}
             className="rounded-lg p-1 hover:bg-surface-active transition-colors"
-            title="New conversation"
+            title={t("contactList.newConversation")}
           >
             <SquarePen className="h-4 w-4 text-on-surface-secondary" />
           </button>
@@ -36,7 +38,7 @@ export function ContactList({ contacts, selectedVendorId, onSelect, onNew }: Con
         {contacts.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full px-4 text-center">
             <MessageCircle className="h-8 w-8 text-on-surface-faint mb-2" />
-            <p className="text-sm text-on-surface-tertiary">No conversations yet</p>
+            <p className="text-sm text-on-surface-tertiary">{t("contactList.empty")}</p>
           </div>
         ) : (
           contacts.map((contact) => (

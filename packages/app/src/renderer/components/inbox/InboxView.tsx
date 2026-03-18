@@ -9,6 +9,7 @@ import { Badge } from "../common/Badge";
 import { Mail, Reply, Sparkles } from "lucide-react";
 import type { Communication } from "../common/ConversationThread";
 import type { GatewayEvent } from "@wedding-planner/shared";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface VendorGroup {
   vendorId: number;
@@ -21,6 +22,7 @@ interface VendorGroup {
 }
 
 export function InboxView() {
+  const { t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedVendorId, setSelectedVendorId] = useState<number | null>(() => {
     const id = searchParams.get("vendorId");
@@ -149,7 +151,7 @@ export function InboxView() {
   if (loading && !messages) {
     return (
       <div className="flex h-full">
-        <div className="w-[400px] border-r border-border animate-pulse bg-surface-subtle" />
+        <div className="w-100 border-r border-border animate-pulse bg-surface-subtle" />
         <div className="flex-1" />
       </div>
     );
@@ -159,13 +161,13 @@ export function InboxView() {
     <div className="flex h-full">
       {/* Vendor list — shrinks when sidebar is open */}
       <div
-        className={`${sidebarOpen ? "w-[260px]" : "w-[400px]"} shrink-0 flex flex-col border-r border-border transition-all duration-200`}
+        className={`${sidebarOpen ? "w-65" : "w-100"} shrink-0 flex flex-col border-r border-border transition-all duration-200`}
       >
         <div className="p-3 border-b border-border">
-          <h2 className="text-sm font-semibold text-on-surface">Inbox</h2>
+          <h2 className="text-sm font-semibold text-on-surface">{t("inbox.title")}</h2>
           <p className="text-xs text-on-surface-tertiary mt-0.5">
             {vendorGroups.length}{" "}
-            {vendorGroups.length === 1 ? "conversation" : "conversations"}
+            {vendorGroups.length === 1 ? t("inbox.conversation.singular") : t("inbox.conversation.plural")}
           </p>
         </div>
 
@@ -173,8 +175,8 @@ export function InboxView() {
           {vendorGroups.length === 0 ? (
             <EmptyState
               icon={Mail}
-              title="No emails yet"
-              description="Emails will appear here when synced from Gmail"
+              title={t("inbox.emptyEmails.title")}
+              description={t("inbox.emptyEmails.description")}
             />
           ) : (
             vendorGroups.map((group) => (
@@ -191,10 +193,10 @@ export function InboxView() {
                   <span
                     className={`text-sm truncate ${group.hasUnread ? "font-semibold text-on-surface" : "font-medium text-on-surface-secondary"}`}
                   >
-                    {group.vendorName ?? "Unknown"}
+                    {group.vendorName ?? t("inbox.unknown")}
                   </span>
                   <div className="flex items-center gap-2 shrink-0 ml-2">
-                    {group.hasUnread && <Badge variant="info">New</Badge>}
+                    {group.hasUnread && <Badge variant="info">{t("inbox.new")}</Badge>}
                     {group.messages.length > 1 && (
                       <span className="text-xs text-on-surface-tertiary">
                         {group.messages.length}
@@ -232,7 +234,7 @@ export function InboxView() {
             <div className="sticky top-0 bg-surface z-10 px-6 py-4 border-b border-border">
               <div className="flex items-center justify-between">
                 <h1 className="text-lg font-semibold text-on-surface truncate mr-3">
-                  {selectedGroup.vendorName ?? "Unknown"}
+                  {selectedGroup.vendorName ?? t("inbox.unknown")}
                 </h1>
                 <div className="flex items-center gap-2 shrink-0">
                   <button
@@ -240,10 +242,10 @@ export function InboxView() {
                       setSidePanelComm(selectedGroup.latestMessage)
                     }
                     className="flex items-center gap-1.5 rounded-lg border border-purple-500/30 px-2 py-1.5 text-sm text-purple-400 hover:bg-purple-500/10 transition-colors"
-                    title="Ask AI"
+                    title={t("inbox.askAi")}
                   >
                     <Sparkles className="h-3.5 w-3.5 shrink-0" />
-                    <span className="hidden xl:inline">Ask AI</span>
+                    <span className="hidden xl:inline">{t("inbox.askAi")}</span>
                   </button>
                   <button
                     onClick={() =>
@@ -253,10 +255,10 @@ export function InboxView() {
                       })
                     }
                     className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-2 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-                    title="Reply"
+                    title={t("inbox.reply")}
                   >
                     <Reply className="h-3.5 w-3.5 shrink-0" />
-                    <span className="hidden xl:inline">Reply</span>
+                    <span className="hidden xl:inline">{t("inbox.reply")}</span>
                   </button>
                 </div>
               </div>
@@ -264,12 +266,12 @@ export function InboxView() {
                 <span>
                   {selectedGroup.messages.length}{" "}
                   {selectedGroup.messages.length === 1
-                    ? "message"
-                    : "messages"}
+                    ? t("inbox.message.singular")
+                    : t("inbox.message.plural")}
                 </span>
                 {selectedGroup.threads.length > 1 && (
                   <span className="text-on-surface-faint">
-                    {selectedGroup.threads.length} threads
+                    {selectedGroup.threads.length} {t("inbox.threads")}
                   </span>
                 )}
               </div>
@@ -284,7 +286,7 @@ export function InboxView() {
                     <div className="flex items-center gap-2 mb-3 mt-2">
                       <div className="h-px flex-1 bg-border" />
                       <span className="text-xs text-on-surface-tertiary shrink-0">
-                        {thread.subject ?? "No subject"}
+                        {thread.subject ?? t("inbox.noSubject")}
                       </span>
                       <div className="h-px flex-1 bg-border" />
                     </div>
@@ -297,8 +299,8 @@ export function InboxView() {
                         <div className="flex items-center gap-3 mb-2">
                           <span className="text-sm font-medium text-on-surface-secondary">
                             {isOutbound(msg.direction)
-                              ? "You"
-                              : (msg.vendorName ?? "Unknown")}
+                              ? t("inbox.you")
+                              : (msg.vendorName ?? t("inbox.unknown"))}
                           </span>
                           {msg.sentAt && (
                             <span className="text-xs text-on-surface-tertiary">
@@ -331,7 +333,7 @@ export function InboxView() {
                             </div>
                             <details className="mt-2">
                               <summary className="text-xs text-on-surface-tertiary cursor-pointer hover:text-on-surface-secondary">
-                                Show original ({msg.language ?? "unknown"})
+                                {t("inbox.showOriginal")} ({msg.language ?? t("inbox.unknownLanguage")})
                               </summary>
                               <div className="mt-1 whitespace-pre-wrap text-xs text-on-surface-tertiary leading-relaxed">
                                 {msg.bodyOriginal}
@@ -364,8 +366,8 @@ export function InboxView() {
         ) : (
           <EmptyState
             icon={Mail}
-            title="Select a conversation"
-            description="Choose a vendor from the list to view their emails"
+            title={t("inbox.select.title")}
+            description={t("inbox.select.description")}
           />
         )}
       </div>

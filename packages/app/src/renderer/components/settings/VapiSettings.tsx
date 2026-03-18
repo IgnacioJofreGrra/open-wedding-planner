@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { wsClient } from "../../lib/ws-client";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface VapiConfig {
   vapiApiKey: string;
@@ -8,6 +9,7 @@ interface VapiConfig {
 }
 
 export function VapiSettings() {
+  const { t } = useI18n();
   const [config, setConfig] = useState<VapiConfig | null>(null);
   const [vapiApiKey, setVapiApiKey] = useState("");
   const [vapiPhoneNumberId, setVapiPhoneNumberId] = useState("");
@@ -50,11 +52,11 @@ export function VapiSettings() {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-4">VAPI Voice Calling</h2>
+      <h2 className="text-lg font-semibold mb-4">{t("settings.vapi.title")}</h2>
       <div className="space-y-4">
         <div className="space-y-2">
           <label className="block text-sm text-on-surface-secondary">
-            VAPI API Key
+            {t("settings.vapi.apiKey")}
           </label>
           <input
             type="password"
@@ -67,7 +69,7 @@ export function VapiSettings() {
 
         <div className="space-y-2">
           <label className="block text-sm text-on-surface-secondary">
-            Phone Number ID
+            {t("settings.vapi.phoneNumberId")}
           </label>
           <input
             type="text"
@@ -80,7 +82,7 @@ export function VapiSettings() {
 
         <div className="space-y-2">
           <label className="block text-sm text-on-surface-secondary">
-            Assistant ID
+            {t("settings.vapi.assistantId")}
           </label>
           <input
             type="text"
@@ -97,7 +99,7 @@ export function VapiSettings() {
             disabled={saving}
             className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50"
           >
-            {saving ? "Saving..." : "Save"}
+            {saving ? t("settings.search.saving") : t("settings.search.save")}
           </button>
         )}
       </div>

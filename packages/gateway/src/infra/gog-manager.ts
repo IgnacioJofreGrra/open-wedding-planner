@@ -53,12 +53,17 @@ export class GogManager {
     const fileStream = createWriteStream(tmpFile);
     await pipeline(response.body as any, fileStream);
 
-    // Extract tar.gz (macOS/Linux)
+    // Extract archive
     if (asset.endsWith(".tar.gz")) {
       await execFileAsync("tar", ["xzf", tmpFile, "-C", this.dir]);
     } else {
-      // .zip for Windows
-      await execFileAsync("unzip", ["-o", tmpFile, "-d", this.dir]);
+      // .zip for Windows — use PowerShell's built-in Expand-Archive (no unzip needed)
+      await execFileAsync("powershell", [
+        "-NoProfile",
+        "-NonInteractive",
+        "-Command",
+        `Expand-Archive -Force -Path '${tmpFile}' -DestinationPath '${this.dir}'`,
+      ]);
     }
 
     // The extracted binary is named "gogcli" or "gogcli.exe" — rename to "gog"

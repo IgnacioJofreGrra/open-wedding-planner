@@ -1,5 +1,6 @@
 import { MapPin, Heart } from "lucide-react";
 import { VendorStatusBadge } from "./VendorStatusBadge";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface VendorTableViewProps {
   vendors: Array<{
@@ -14,14 +15,16 @@ interface VendorTableViewProps {
 }
 
 export function VendorTableView({ vendors, onVendorClick, onToggleFavorite }: VendorTableViewProps) {
+  const { t } = useI18n();
+
   return (
     <div className="rounded-xl border border-border overflow-hidden">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border text-left text-xs text-on-surface-tertiary">
-            <th className="px-4 py-2.5 font-medium">Name</th>
-            <th className="px-4 py-2.5 font-medium">Status</th>
-            <th className="px-4 py-2.5 font-medium">Location</th>
+            <th className="px-4 py-2.5 font-medium">{t("vendor.table.name")}</th>
+            <th className="px-4 py-2.5 font-medium">{t("vendor.table.status")}</th>
+            <th className="px-4 py-2.5 font-medium">{t("vendor.table.location")}</th>
             <th className="px-4 py-2.5 font-medium w-10"></th>
           </tr>
         </thead>

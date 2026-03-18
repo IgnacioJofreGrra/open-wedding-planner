@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Search, ChevronDown, Heart, LayoutGrid, List, ArrowUpDown } from "lucide-react";
+import { useI18n } from "../../i18n/use-i18n";
+import type { TranslationKey } from "../../stores/ui-language-store";
 
 interface Category {
   id: number;
@@ -26,20 +28,20 @@ interface VendorFiltersProps {
   onViewModeChange: (mode: ViewMode) => void;
 }
 
-const STATUSES = [
-  { value: "", label: "All statuses", color: null },
-  { value: "researched", label: "Researched", color: "bg-blue-400" },
-  { value: "contacted", label: "Contacted", color: "bg-amber-400" },
-  { value: "quoted", label: "Quoted", color: "bg-gray-400" },
-  { value: "booked", label: "Booked", color: "bg-emerald-400" },
-  { value: "rejected", label: "Rejected", color: "bg-red-400" },
-];
+const STATUSES: Array<{ value: string; key: TranslationKey; color: string | null }> = [
+  { value: "", key: "vendor.status.all", color: null },
+  { value: "researched", key: "vendor.status.researched", color: "bg-blue-400" },
+  { value: "contacted", key: "vendor.status.contacted", color: "bg-amber-400" },
+  { value: "quoted", key: "vendor.status.quoted", color: "bg-gray-400" },
+  { value: "booked", key: "vendor.status.booked", color: "bg-emerald-400" },
+  { value: "rejected", key: "vendor.status.rejected", color: "bg-red-400" },
+] as const;
 
-const SORT_OPTIONS: { value: SortOption; label: string }[] = [
-  { value: "name-asc", label: "Name A–Z" },
-  { value: "name-desc", label: "Name Z–A" },
-  { value: "newest", label: "Newest first" },
-  { value: "status", label: "Status" },
+const SORT_OPTIONS: { value: SortOption; key: TranslationKey }[] = [
+  { value: "name-asc", key: "vendor.filters.sort.nameAsc" },
+  { value: "name-desc", key: "vendor.filters.sort.nameDesc" },
+  { value: "newest", key: "vendor.filters.sort.newest" },
+  { value: "status", key: "vendor.filters.sort.status" },
 ];
 
 export function VendorFilters({
@@ -58,6 +60,7 @@ export function VendorFilters({
   viewMode,
   onViewModeChange,
 }: VendorFiltersProps) {
+  const { t } = useI18n();
   const [statusOpen, setStatusOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const statusRef = useRef<HTMLDivElement>(null);
@@ -86,7 +89,7 @@ export function VendorFilters({
               : "bg-surface-elevated text-on-surface-secondary hover:bg-surface-active"
           }`}
         >
-          All
+          {t("vendor.filters.all")}
         </button>
         {categories.filter((cat) => (categoryCounts.get(cat.id) ?? 0) > 0).map((cat) => {
           const count = categoryCounts.get(cat.id)!;
@@ -115,7 +118,7 @@ export function VendorFilters({
             type="text"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search vendors..."
+            placeholder={t("vendor.filters.search")}
             className="w-full rounded-lg border border-border bg-surface-elevated py-2 pl-9 pr-3 text-sm text-on-surface outline-none focus:border-border-hover"
           />
         </div>
@@ -124,7 +127,7 @@ export function VendorFilters({
           className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm outline-none transition-colors ${favoritesOnly ? "border-rose-400/30 bg-rose-400/10 text-rose-400" : "border-border bg-surface-elevated text-on-surface-secondary hover:border-border-hover"}`}
         >
           <Heart className={`h-3.5 w-3.5 ${favoritesOnly ? "fill-rose-400" : ""}`} />
-          Favorites
+          {t("vendor.filters.favorites")}
         </button>
 
         {/* Status dropdown */}
@@ -134,7 +137,7 @@ export function VendorFilters({
             className="flex items-center gap-2 rounded-lg border border-border bg-surface-elevated px-3 py-2 text-sm text-on-surface outline-none hover:border-border-hover"
           >
             {selected.color && <span className={`inline-block h-2 w-2 rounded-full ${selected.color}`} />}
-            {selected.label}
+            {t(selected.key)}
             <ChevronDown className="h-3 w-3 text-on-surface-secondary" />
           </button>
           {statusOpen && (
@@ -150,7 +153,7 @@ export function VendorFilters({
                   ) : (
                     <span className="inline-block h-2 w-2" />
                   )}
-                  {s.label}
+                  {t(s.key)}
                 </button>
               ))}
             </div>
@@ -164,7 +167,7 @@ export function VendorFilters({
             className="flex items-center gap-2 rounded-lg border border-border bg-surface-elevated px-3 py-2 text-sm text-on-surface outline-none hover:border-border-hover"
           >
             <ArrowUpDown className="h-3.5 w-3.5 text-on-surface-secondary" />
-            {selectedSort.label}
+            {t(selectedSort.key)}
             <ChevronDown className="h-3 w-3 text-on-surface-secondary" />
           </button>
           {sortOpen && (
@@ -175,7 +178,7 @@ export function VendorFilters({
                   onClick={() => { onSortChange(s.value); setSortOpen(false); }}
                   className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-surface-active ${s.value === sortBy ? "text-on-surface" : "text-on-surface-secondary"}`}
                 >
-                  {s.label}
+                  {t(s.key)}
                 </button>
               ))}
             </div>
@@ -186,7 +189,7 @@ export function VendorFilters({
         <button
           onClick={() => onViewModeChange(viewMode === "grid" ? "table" : "grid")}
           className="rounded-lg border border-border bg-surface-elevated p-2 text-on-surface-secondary hover:border-border-hover hover:text-on-surface transition-colors"
-          title={viewMode === "grid" ? "Switch to list view" : "Switch to grid view"}
+          title={viewMode === "grid" ? t("vendor.filters.view.list") : t("vendor.filters.view.grid")}
         >
           {viewMode === "grid" ? <List className="h-4 w-4" /> : <LayoutGrid className="h-4 w-4" />}
         </button>

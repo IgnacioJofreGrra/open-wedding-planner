@@ -8,6 +8,7 @@ import { BudgetCategoryRow } from "./BudgetCategoryRow";
 import { CurrencyDisplay } from "../common/CurrencyDisplay";
 import { EmptyState } from "../common/EmptyState";
 import { Skeleton } from "../common/Skeleton";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface WeddingConfig {
   totalBudget: number | null;
@@ -15,6 +16,7 @@ interface WeddingConfig {
 }
 
 export function BudgetView() {
+  const { t } = useI18n();
   const { data, loading, refetch } = useBudgetData();
   const { data: config } = useRequest<WeddingConfig>("wedding-config.get");
   const { mutate: deleteBudgetEntry, loading: deleting } = useMutation<{ id: number }>("budget.delete");
@@ -42,11 +44,11 @@ export function BudgetView() {
   if (!data || data.categoryBudgets.length === 0) {
     return (
       <div className="p-6">
-        <h1 className="mb-6 text-2xl font-bold">Budget</h1>
+        <h1 className="mb-6 text-2xl font-bold">{t("budget.title")}</h1>
         <EmptyState
           icon={DollarSign}
-          title="No budget data"
-          description="Import budget CSV to populate the budget view"
+          title={t("budget.empty.title")}
+          description={t("budget.empty.description")}
         />
       </div>
     );
@@ -54,7 +56,7 @@ export function BudgetView() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Budget</h1>
+      <h1 className="text-2xl font-bold">{t("budget.title")}</h1>
 
       <BudgetSummaryBar
         totalBudget={config?.totalBudget ?? null}
@@ -67,12 +69,12 @@ export function BudgetView() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-on-surface-secondary">
-              <th className="px-4 py-3 text-left font-medium">Category</th>
-              <th className="px-4 py-3 text-right font-medium">High</th>
-              <th className="px-4 py-3 text-right font-medium">Low</th>
-              <th className="px-4 py-3 text-right font-medium">Estimated</th>
-              <th className="px-4 py-3 text-right font-medium">Paid</th>
-              <th className="px-4 py-3 text-right font-medium">Balance</th>
+              <th className="px-4 py-3 text-left font-medium">{t("budget.table.category")}</th>
+              <th className="px-4 py-3 text-right font-medium">{t("budget.table.high")}</th>
+              <th className="px-4 py-3 text-right font-medium">{t("budget.table.low")}</th>
+              <th className="px-4 py-3 text-right font-medium">{t("budget.table.estimated")}</th>
+              <th className="px-4 py-3 text-right font-medium">{t("budget.table.paid")}</th>
+              <th className="px-4 py-3 text-right font-medium">{t("budget.table.balance")}</th>
             </tr>
           </thead>
           <tbody>
@@ -82,7 +84,7 @@ export function BudgetView() {
           </tbody>
           <tfoot>
             <tr className="border-t border-border font-semibold">
-              <td className="px-4 py-3">Total</td>
+              <td className="px-4 py-3">{t("budget.table.total")}</td>
               <td className="px-4 py-3 text-right">
                 <CurrencyDisplay amount={data.grandTotals.high || null} currency={currency} />
               </td>
@@ -105,8 +107,8 @@ export function BudgetView() {
 
       <ConfirmDialog
         open={deleteTarget !== null}
-        title="Delete budget entry?"
-        message="This budget entry will be permanently removed."
+        title={t("budget.delete.title")}
+        message={t("budget.delete.message")}
         onConfirm={handleDeleteEntry}
         onCancel={() => setDeleteTarget(null)}
         loading={deleting}

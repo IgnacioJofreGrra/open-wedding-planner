@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { ShieldCheck, Settings2 } from "lucide-react";
 import { wsClient } from "../../lib/ws-client";
 import { GuardrailsModal } from "./GuardrailsModal";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface GuardrailsConfig {
   enabled: boolean;
@@ -13,6 +14,7 @@ interface GuardrailsConfig {
 }
 
 export function GuardrailsSettings() {
+  const { t } = useI18n();
   const [config, setConfig] = useState<GuardrailsConfig | null>(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -47,7 +49,7 @@ export function GuardrailsSettings() {
     <div>
       <div className="flex items-center gap-2 mb-4">
         <ShieldCheck className="h-5 w-5 text-on-surface-secondary" />
-        <h2 className="text-lg font-semibold">Agent Guardrails</h2>
+        <h2 className="text-lg font-semibold">{t("settings.guardrails.title")}</h2>
       </div>
       <div className="flex items-center justify-between">
         <label className="flex items-center gap-3 cursor-pointer">
@@ -58,11 +60,11 @@ export function GuardrailsSettings() {
             className="h-4 w-4 rounded accent-accent"
           />
           <div>
-            <p className="text-sm font-medium text-on-surface">Enable guardrails</p>
+            <p className="text-sm font-medium text-on-surface">{t("settings.guardrails.enable")}</p>
             <p className="text-xs text-on-surface-secondary">
               {config.enabled
                 ? `Active: ${activeDetectors.join(", ")}`
-                : "Detect and prevent agent loops and stuck patterns"}
+                : t("settings.guardrails.description")}
             </p>
           </div>
         </label>
@@ -71,7 +73,7 @@ export function GuardrailsSettings() {
           className="flex items-center gap-1.5 rounded-md border border-border bg-surface-elevated px-3 py-1.5 text-xs text-on-surface-secondary hover:bg-surface-active transition-colors"
         >
           <Settings2 className="h-3.5 w-3.5" />
-          Configure
+          {t("settings.guardrails.configure")}
         </button>
       </div>
 

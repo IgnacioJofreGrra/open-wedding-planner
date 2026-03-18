@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface DetectorConfig {
   enabled: boolean;
@@ -96,6 +97,7 @@ export function GuardrailsModal({
   onSave: (config: GuardrailsConfig) => void;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   const [draft, setDraft] = useState<GuardrailsConfig>(structuredClone(config));
   const [saving, setSaving] = useState(false);
 
@@ -134,7 +136,7 @@ export function GuardrailsModal({
       >
         {/* Header */}
         <div className="flex items-center justify-between p-5 pb-0">
-          <h3 className="text-lg font-semibold text-on-surface">Guardrails Configuration</h3>
+          <h3 className="text-lg font-semibold text-on-surface">{t("settings.guardrails.modal.title")}</h3>
           <button
             onClick={onClose}
             className="rounded-lg p-1 hover:bg-surface-active transition-colors"
@@ -146,42 +148,42 @@ export function GuardrailsModal({
         {/* Scrollable content */}
         <div className="overflow-y-auto p-5 space-y-4 flex-1">
           <NumberField
-            label="History size"
+            label={t("settings.guardrails.modal.historySize")}
             value={draft.historySize}
             onChange={(v) => update("historySize", v)}
             min={5}
-            hint="Number of tool calls remembered per session"
+            hint={t("settings.guardrails.modal.historySizeHint")}
           />
 
           <DetectorSection
-            title="Repeat Detector"
-            description="Flags when the same tool is called with identical arguments too many times."
+            title={t("settings.guardrails.modal.repeatDetector")}
+            description={t("settings.guardrails.modal.repeatDesc")}
             enabled={draft.repeat.enabled}
             onToggle={(v) => updateDetector("repeat", "enabled", v)}
           >
             <NumberField
-              label="Warn threshold"
+              label={t("settings.guardrails.modal.warnThreshold")}
               value={draft.repeat.warnThreshold}
               onChange={(v) => updateDetector("repeat", "warnThreshold", v)}
               min={1}
             />
             <NumberField
-              label="Critical threshold"
+              label={t("settings.guardrails.modal.criticalThreshold")}
               value={draft.repeat.criticalThreshold}
               onChange={(v) => updateDetector("repeat", "criticalThreshold", v)}
               min={0}
-              hint="0 = never block"
+              hint={t("settings.guardrails.modal.neverBlock")}
             />
           </DetectorSection>
 
           <DetectorSection
-            title="Polling Detector"
-            description="Detects poll-like tools producing identical results repeatedly — no progress."
+            title={t("settings.guardrails.modal.pollingDetector")}
+            description={t("settings.guardrails.modal.pollingDesc")}
             enabled={draft.polling.enabled}
             onToggle={(v) => updateDetector("polling", "enabled", v)}
           >
             <div className="col-span-2 space-y-1">
-              <label className="block text-xs text-on-surface-secondary">Poll tools</label>
+              <label className="block text-xs text-on-surface-secondary">{t("settings.guardrails.modal.pollTools")}</label>
               <input
                 type="text"
                 value={draft.polling.pollTools.join(", ")}
@@ -193,18 +195,18 @@ export function GuardrailsModal({
                   )
                 }
                 className="w-full rounded-md border border-border bg-surface-elevated px-3 py-1.5 text-sm text-on-surface focus:border-accent focus:outline-none"
-                placeholder="dbQuery, dbSchema"
+                placeholder={t("settings.guardrails.modal.pollToolsPlaceholder")}
               />
-              <p className="text-xs text-on-surface-faint">Comma-separated tool names</p>
+              <p className="text-xs text-on-surface-faint">{t("settings.guardrails.modal.pollToolsHint")}</p>
             </div>
             <NumberField
-              label="Warn threshold"
+              label={t("settings.guardrails.modal.warnThreshold")}
               value={draft.polling.warnThreshold}
               onChange={(v) => updateDetector("polling", "warnThreshold", v)}
               min={2}
             />
             <NumberField
-              label="Critical threshold"
+              label={t("settings.guardrails.modal.criticalThreshold")}
               value={draft.polling.criticalThreshold}
               onChange={(v) => updateDetector("polling", "criticalThreshold", v)}
               min={2}
@@ -212,19 +214,19 @@ export function GuardrailsModal({
           </DetectorSection>
 
           <DetectorSection
-            title="Ping-Pong Detector"
-            description="Detects alternating A/B/A/B patterns with stable outcomes."
+            title={t("settings.guardrails.modal.pingPongDetector")}
+            description={t("settings.guardrails.modal.pingPongDesc")}
             enabled={draft.pingPong.enabled}
             onToggle={(v) => updateDetector("pingPong", "enabled", v)}
           >
             <NumberField
-              label="Min cycles to warn"
+              label={t("settings.guardrails.modal.minCycles")}
               value={draft.pingPong.minCycles}
               onChange={(v) => updateDetector("pingPong", "minCycles", v)}
               min={2}
             />
             <NumberField
-              label="Stable cycles to block"
+              label={t("settings.guardrails.modal.stableCycles")}
               value={draft.pingPong.stableOutcomeCycles}
               onChange={(v) => updateDetector("pingPong", "stableOutcomeCycles", v)}
               min={2}
@@ -232,13 +234,13 @@ export function GuardrailsModal({
           </DetectorSection>
 
           <DetectorSection
-            title="Circuit Breaker"
-            description="Hard stop when the last N calls show only 1-2 unique patterns — last resort."
+            title={t("settings.guardrails.modal.circuitBreaker")}
+            description={t("settings.guardrails.modal.circuitBreakerDesc")}
             enabled={draft.circuitBreaker.enabled}
             onToggle={(v) => updateDetector("circuitBreaker", "enabled", v)}
           >
             <NumberField
-              label="Stale window size"
+              label={t("settings.guardrails.modal.staleWindow")}
               value={draft.circuitBreaker.maxStaleWindow}
               onChange={(v) => updateDetector("circuitBreaker", "maxStaleWindow", v)}
               min={5}
@@ -252,14 +254,14 @@ export function GuardrailsModal({
             onClick={onClose}
             className="rounded-md px-4 py-2 text-sm text-on-surface-secondary hover:text-on-surface transition-colors"
           >
-            Cancel
+            {t("settings.guardrails.modal.cancel")}
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
             className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50 transition-colors"
           >
-            {saving ? "Saving..." : "Save"}
+            {saving ? t("settings.search.saving") : t("settings.search.save")}
           </button>
         </div>
       </div>

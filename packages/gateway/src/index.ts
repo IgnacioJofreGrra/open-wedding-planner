@@ -674,8 +674,7 @@ export async function startGateway(options: GatewayOptions = {}) {
 const isMainModule =
   typeof process !== "undefined" &&
   process.argv[1] &&
-  (process.argv[1].endsWith("/index.js") ||
-    process.argv[1].endsWith("/index.mjs"));
+  ["index.js", "index.mjs"].includes(path.basename(process.argv[1]));
 
 if (isMainModule) {
   const stop = await startGateway();

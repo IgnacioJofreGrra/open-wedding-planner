@@ -1,8 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { ToolPermissions } from "./ToolPermissions";
+import { useI18n } from "../../i18n/use-i18n";
 
 export function ToolPermissionsPage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
 
   return (
@@ -12,7 +14,7 @@ export function ToolPermissionsPage() {
         className="mb-6 flex items-center gap-2 text-sm text-on-surface-secondary transition-colors hover:text-on-surface"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to Settings
+        {t("settings.tools.back")}
       </button>
       <ToolPermissions />
     </div>

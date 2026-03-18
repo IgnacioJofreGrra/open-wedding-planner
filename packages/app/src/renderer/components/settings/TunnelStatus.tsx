@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { wsClient } from "../../lib/ws-client";
 import { useMutation } from "../../hooks/useRequest";
+import { useI18n } from "../../i18n/use-i18n";
 
 type TunnelState =
   | { state: "stopped" }
@@ -17,6 +18,7 @@ type TunnelState =
   | { state: "error"; message: string };
 
 export function TunnelStatus() {
+  const { t } = useI18n();
   const [status, setStatus] = useState<TunnelState>({ state: "stopped" });
   const [copied, setCopied] = useState(false);
   const { mutate: startTunnel, loading: starting } =
@@ -61,12 +63,11 @@ export function TunnelStatus() {
     <div className="space-y-3">
       <div className="flex items-center gap-2">
         <Globe className="w-4 h-4 text-on-surface-secondary" />
-        <h2 className="text-sm font-semibold text-on-surface">Internet Tunnel</h2>
+        <h2 className="text-sm font-semibold text-on-surface">{t("settings.tunnel.title")}</h2>
       </div>
 
       <p className="text-xs text-on-surface-tertiary">
-        Expose the app to the internet via a temporary Cloudflare URL. No
-        account required.
+        {t("settings.tunnel.description")}
       </p>
 
       <div className="flex items-center gap-2">
@@ -74,8 +75,8 @@ export function TunnelStatus() {
           <StatusDot state={status.state} />
           <span className="text-sm text-on-surface font-mono truncate">
             {status.state === "running" && status.url}
-            {status.state === "starting" && "Starting tunnel…"}
-            {status.state === "stopped" && "Tunnel not active"}
+            {status.state === "starting" && t("settings.tunnel.starting")}
+            {status.state === "stopped" && t("settings.tunnel.inactive")}
             {status.state === "error" && (
               <span className="text-error">{status.message}</span>
             )}
@@ -85,7 +86,7 @@ export function TunnelStatus() {
         {status.state === "running" && (
           <button
             onClick={handleCopy}
-            title="Copy URL"
+            title={t("settings.tunnel.copy")}
             className="p-2 rounded-lg bg-surface-elevated border border-border hover:bg-surface-active transition-colors shrink-0"
           >
             {copied ? (
@@ -105,7 +106,7 @@ export function TunnelStatus() {
                 window.open(status.url, "_blank");
               }
             }}
-            title="Open in browser"
+            title={t("settings.tunnel.open")}
             className="p-2 rounded-lg bg-surface-elevated border border-border hover:bg-surface-active transition-colors shrink-0"
           >
             <ExternalLink className="w-4 h-4 text-on-surface-secondary" />
@@ -124,9 +125,9 @@ export function TunnelStatus() {
           {isBusy ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : isActive ? (
-            "Stop"
+            t("settings.tunnel.stop")
           ) : (
-            "Start"
+            t("settings.tunnel.start")
           )}
         </button>
       </div>
@@ -134,10 +135,7 @@ export function TunnelStatus() {
       {status.state === "error" && (
         <div className="flex items-start gap-2 text-xs text-error/80 bg-error-bg border border-error/20 rounded-lg px-3 py-2">
           <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-          <span>
-            Make sure the app was installed via the packaged installer, which
-            includes the cloudflared binary.
-          </span>
+          <span>{t("settings.tunnel.packagedHint")}</span>
         </div>
       )}
     </div>

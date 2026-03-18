@@ -8,6 +8,7 @@ import { Markdown } from "../shared/Markdown";
 import { Phone, Clock, ChevronDown, ChevronUp, Trash2, Sparkles, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { GatewayEvent } from "@wedding-planner/shared";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface VoiceCall {
   id: number;
@@ -119,6 +120,7 @@ function CallAgentPanel({
   onClose: () => void;
   width: number;
 }) {
+  const { t } = useI18n();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
@@ -182,7 +184,7 @@ function CallAgentPanel({
           ...prev,
           {
             role: "assistant",
-            content: "Failed to start agent. Please try again.",
+            content: t("callAgent.error"),
           },
         ]);
         setLoading(false);
@@ -190,7 +192,7 @@ function CallAgentPanel({
         unsubRef.current = null;
       }
     },
-    [call.id, messages, dispatchAction],
+    [call.id, messages, dispatchAction, t],
   );
 
   return (
@@ -206,7 +208,7 @@ function CallAgentPanel({
         <div className="flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-purple-400" />
           <span className="text-sm font-medium text-on-surface">
-            AI Assistant
+            {t("callAgent.title")}
           </span>
         </div>
         <button
@@ -219,7 +221,7 @@ function CallAgentPanel({
 
       <div className="px-3 py-2 border-b border-border bg-surface-subtle">
         <p className="text-xs text-on-surface-tertiary">
-          Call with {call.vendorName ?? call.phoneNumber}
+          {t("callAgent.callWith")} {call.vendorName ?? call.phoneNumber}
         </p>
         {call.summary && (
           <p className="text-xs text-on-surface-secondary truncate mt-0.5">
@@ -231,17 +233,16 @@ function CallAgentPanel({
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
         {messages.length === 0 && (
           <div className="text-center text-on-surface-tertiary text-xs mt-8">
-            <p>Ask the AI about this call.</p>
+            <p>{t("callAgent.empty.title")}</p>
             <p className="mt-1 text-on-surface-faint">
-              e.g. "Summarize the key points" or "What pricing did they
-              mention?"
+              {t("callAgent.empty.examples")}
             </p>
           </div>
         )}
         {messages.map((msg, i) => (
           <div key={i} className="text-sm text-on-surface-secondary">
             <span className="text-xs font-medium text-on-surface-tertiary block mb-0.5">
-              {msg.role === "user" ? "You" : "AI"}
+              {msg.role === "user" ? t("callAgent.you") : t("callAgent.ai")}
             </span>
             {msg.role === "assistant" ? (
               <Markdown content={msg.content} />
@@ -253,7 +254,7 @@ function CallAgentPanel({
         {loading && (
           <div className="flex items-center gap-2 text-xs text-on-surface-tertiary">
             <span className="h-1.5 w-1.5 rounded-full bg-purple-400 animate-pulse" />
-            Working...
+            {t("callAgent.working")}
           </div>
         )}
         <div ref={endRef} />
@@ -262,13 +263,14 @@ function CallAgentPanel({
       <ComposeBox
         onSend={handleSend}
         disabled={loading}
-        placeholder="Ask about this call..."
+        placeholder={t("callAgent.placeholder")}
       />
     </motion.div>
   );
 }
 
 export function CallsView() {
+  const { t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedCallId, setSelectedCallId] = useState<number | null>(() => {
     const id = searchParams.get("id");
@@ -363,12 +365,12 @@ export function CallsView() {
         style={{ width: listWidth }}
       >
         <div className="px-4 py-3 border-b border-border">
-          <h2 className="text-sm font-semibold text-on-surface">Voice Calls</h2>
+          <h2 className="text-sm font-semibold text-on-surface">{t("calls.title")}</h2>
         </div>
         <div className="flex-1 overflow-y-auto">
           {sortedCalls.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm text-on-surface-muted">
-              No calls yet
+              {t("calls.empty")}
             </div>
           ) : (
             sortedCalls.map((call) => (
@@ -425,22 +427,22 @@ export function CallsView() {
             <div className="px-6 py-4 border-b border-border">
               <div className="flex items-center justify-between mb-1">
                 <h2 className="text-base font-semibold text-on-surface">
-                  {selectedCall.vendorName ?? "Unknown Vendor"}
+                  {selectedCall.vendorName ?? t("calls.unknownVendor")}
                 </h2>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setAiPanelOpen(!aiPanelOpen)}
                     className="flex items-center gap-1.5 rounded-lg border border-purple-500/30 px-2 py-1.5 text-sm text-purple-400 hover:bg-purple-500/10 transition-colors"
-                    title="Ask AI"
+                    title={t("calls.askAi")}
                   >
                     <Sparkles className="h-3.5 w-3.5 shrink-0" />
-                    <span className="hidden xl:inline">Ask AI</span>
+                    <span className="hidden xl:inline">{t("calls.askAi")}</span>
                   </button>
                   <StatusBadge status={selectedCall.status} />
                   <button
                     onClick={handleDelete}
                     className="rounded p-1 text-on-surface-muted hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                    title="Delete call"
+                    title={t("calls.deleteCall")}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -463,7 +465,7 @@ export function CallsView() {
               {selectedCall.instructions && (
                 <div>
                   <h3 className="text-sm font-semibold text-on-surface mb-1">
-                    Instructions
+                    {t("calls.instructions")}
                   </h3>
                   <div className="text-sm text-on-surface-muted">
                     <Markdown content={selectedCall.instructions} />
@@ -475,7 +477,7 @@ export function CallsView() {
               {selectedCall.summary && (
                 <div>
                   <h3 className="text-sm font-semibold text-on-surface mb-1">
-                    Summary
+                    {t("calls.summary")}
                   </h3>
                   <div className="text-sm text-on-surface-muted">
                     <Markdown content={selectedCall.summary} />
@@ -487,7 +489,7 @@ export function CallsView() {
               {selectedCall.structuredData && (
                 <div>
                   <h3 className="text-sm font-semibold text-on-surface mb-1">
-                    Structured Data
+                    {t("calls.structuredData")}
                   </h3>
                   <pre className="rounded-lg bg-surface-subtle p-3 text-xs text-on-surface-muted overflow-x-auto">
                     {(() => {
@@ -517,7 +519,7 @@ export function CallsView() {
                     ) : (
                       <ChevronDown className="h-4 w-4" />
                     )}
-                    Transcript
+                    {t("calls.transcript")}
                   </button>
                   {transcriptOpen && (
                     <div className="mt-2 space-y-3">
@@ -570,7 +572,7 @@ export function CallsView() {
               {selectedCall.recordingUrl && (
                 <div>
                   <h3 className="text-sm font-semibold text-on-surface mb-2">
-                    Recording
+                    {t("calls.recording")}
                   </h3>
                   <audio
                     controls
@@ -585,7 +587,7 @@ export function CallsView() {
             {selectedCall.endedReason && (
               <div className="px-6 py-3 border-t border-border mt-auto">
                 <span className="text-xs text-on-surface-muted">
-                  Ended: {selectedCall.endedReason}
+                  {t("calls.ended")}: {selectedCall.endedReason}
                 </span>
               </div>
             )}
@@ -593,8 +595,8 @@ export function CallsView() {
         ) : (
           <EmptyState
             icon={Phone}
-            title="Select a call"
-            description="Choose a call from the list to view its details"
+            title={t("calls.select.title")}
+            description={t("calls.select.description")}
           />
         )}
       </div>

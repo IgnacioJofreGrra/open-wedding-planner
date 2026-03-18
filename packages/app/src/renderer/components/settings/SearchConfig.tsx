@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { wsClient } from "../../lib/ws-client";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface SearchConfigData {
   provider: "brave" | "duckduckgo";
@@ -8,6 +9,7 @@ interface SearchConfigData {
 }
 
 export function SearchConfig() {
+  const { t } = useI18n();
   const [config, setConfig] = useState<SearchConfigData | null>(null);
   const [provider, setProvider] = useState<"brave" | "duckduckgo">("duckduckgo");
   const [apiKey, setApiKey] = useState("");
@@ -41,7 +43,7 @@ export function SearchConfig() {
     } catch (err) {
       setValidationResult({
         valid: false,
-        error: err instanceof Error ? err.message : "Validation failed",
+        error: err instanceof Error ? err.message : t("settings.search.validationFailed"),
       });
     } finally {
       setValidating(false);
@@ -69,7 +71,7 @@ export function SearchConfig() {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-4">Web Search</h2>
+      <h2 className="text-lg font-semibold mb-4">{t("settings.search.title")}</h2>
       <div className="space-y-4">
         {/* Provider selection */}
         <div className="space-y-2">
@@ -87,7 +89,7 @@ export function SearchConfig() {
             <div>
               <p className="text-sm font-medium text-on-surface">DuckDuckGo</p>
               <p className="text-xs text-on-surface-secondary">
-                Free, no API key required (HTML scraping)
+                {t("settings.search.duckduckgo.description")}
               </p>
             </div>
           </label>
@@ -106,7 +108,7 @@ export function SearchConfig() {
             <div>
               <p className="text-sm font-medium text-on-surface">Brave Search</p>
               <p className="text-xs text-on-surface-secondary">
-                Structured API results (requires API key)
+                {t("settings.search.brave.description")}
               </p>
             </div>
           </label>
@@ -124,15 +126,15 @@ export function SearchConfig() {
               />
               <p className="text-xs text-on-surface-secondary">
                 {config.hasApiKey
-                  ? `API key set (${config.maskedApiKey})`
-                  : "No API key configured"}
+                  ? `${t("settings.search.apiSet")} (${config.maskedApiKey})`
+                  : t("settings.search.noApi")}
               </p>
             </div>
 
             {/* Key input */}
             <div className="space-y-2">
               <label className="block text-sm text-on-surface-secondary">
-                {config.hasApiKey ? "Update API Key" : "API Key"}
+                {config.hasApiKey ? t("settings.search.updateApi") : t("settings.search.apiKey")}
               </label>
               <div className="flex gap-2">
                 <input
@@ -150,7 +152,7 @@ export function SearchConfig() {
                   disabled={!apiKey || validating}
                   className="rounded-md border border-border bg-surface-elevated px-3 py-2 text-sm text-on-surface-secondary hover:bg-surface-active disabled:opacity-50"
                 >
-                  {validating ? "Testing..." : "Validate"}
+                  {validating ? t("settings.search.testing") : t("settings.search.validate")}
                 </button>
               </div>
             </div>
@@ -161,8 +163,8 @@ export function SearchConfig() {
                 className={`text-xs ${validationResult.valid ? "text-success" : "text-error"}`}
               >
                 {validationResult.valid
-                  ? "API key is valid"
-                  : `Invalid: ${validationResult.error}`}
+                  ? t("settings.search.apiValid")
+                  : `${t("settings.search.invalid")}: ${validationResult.error}`}
               </p>
             )}
           </div>
@@ -175,7 +177,7 @@ export function SearchConfig() {
             disabled={saving || (provider === "brave" && !config.hasApiKey && !apiKey)}
             className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50"
           >
-            {saving ? "Saving..." : "Save"}
+            {saving ? t("settings.search.saving") : t("settings.search.save")}
           </button>
         )}
       </div>

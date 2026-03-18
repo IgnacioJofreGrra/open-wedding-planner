@@ -7,6 +7,7 @@ import {
   X,
   ImageIcon,
 } from "lucide-react";
+import { useI18n } from "../../i18n/use-i18n";
 import {
   useVendorImages,
   useUploadVendorImage,
@@ -24,6 +25,7 @@ interface VendorPhotosProps {
 }
 
 export function VendorPhotos({ vendorId }: VendorPhotosProps) {
+  const { t } = useI18n();
   const { data: images, loading, refetch } = useVendorImages(vendorId);
   const { mutate: uploadImage } = useUploadVendorImage();
   const { mutate: deleteImage, loading: deleting } = useDeleteVendorImage();
@@ -210,14 +212,14 @@ export function VendorPhotos({ vendorId }: VendorPhotosProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium text-on-surface-secondary">
-          {imageList.length} {imageList.length === 1 ? "photo" : "photos"}
+          {imageList.length} {imageList.length === 1 ? t("vendor.photos.photo") : t("vendor.photos.photos")}
         </h3>
         <button
           onClick={handleAddPhotos}
           className="flex items-center gap-1.5 rounded-lg bg-surface-elevated px-3 py-1.5 text-sm text-on-surface-secondary transition-colors hover:bg-surface-active hover:text-on-surface"
         >
           <Plus className="h-4 w-4" />
-          Add Photos
+          {t("vendor.photos.addPhotos")}
         </button>
       </div>
 
@@ -225,9 +227,9 @@ export function VendorPhotos({ vendorId }: VendorPhotosProps) {
       {imageList.length === 0 && (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16">
           <ImageIcon className="mb-3 h-10 w-10 text-on-surface-faint" />
-          <p className="text-sm font-medium text-on-surface-secondary">No photos yet</p>
+          <p className="text-sm font-medium text-on-surface-secondary">{t("vendor.photos.empty")}</p>
           <p className="mt-1 text-xs text-on-surface-tertiary">
-            Ask the research agent to find some, or drag and drop your own
+            {t("vendor.photos.emptyHint")}
           </p>
         </div>
       )}
@@ -247,7 +249,7 @@ export function VendorPhotos({ vendorId }: VendorPhotosProps) {
                 className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
               />
               {image.caption && (
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 pb-2 pt-6 opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent px-2 pb-2 pt-6 opacity-0 transition-opacity group-hover:opacity-100">
                   <p className="truncate text-xs text-on-surface">{image.caption}</p>
                 </div>
               )}
@@ -306,7 +308,7 @@ export function VendorPhotos({ vendorId }: VendorPhotosProps) {
               className="mt-3 flex items-center gap-1.5 rounded-lg bg-red-500/10 px-3 py-1.5 text-sm text-red-400 transition-colors hover:bg-red-500/20"
             >
               <Trash2 className="h-4 w-4" />
-              Delete
+              {t("vendor.photos.delete")}
             </button>
           </div>
 
@@ -339,11 +341,11 @@ export function VendorPhotos({ vendorId }: VendorPhotosProps) {
       {/* Delete confirmation */}
       <ConfirmDialog
         open={deleteTarget !== null}
-        title="Delete photo?"
+        title={t("vendor.photos.deleteTitle")}
         message={
           deleteTarget?.caption
-            ? `Delete "${deleteTarget.caption}"? This cannot be undone.`
-            : "Delete this photo? This cannot be undone."
+            ? t("vendor.photos.deleteWithCaption").replace("{{caption}}", deleteTarget.caption)
+            : t("vendor.photos.deleteNoCaption")
         }
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteTarget(null)}

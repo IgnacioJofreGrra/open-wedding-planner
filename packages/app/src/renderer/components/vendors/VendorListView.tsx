@@ -9,12 +9,14 @@ import { VendorTableView } from "./VendorTableView";
 import { EmptyState } from "../common/EmptyState";
 import { SkeletonCard } from "../common/Skeleton";
 import { useVendorFiltersStore } from "../../stores/vendor-filters-store";
+import { useI18n } from "../../i18n/use-i18n";
 
 const STATUS_ORDER: Record<string, number> = {
   booked: 0, quoted: 1, contacted: 2, researched: 3, rejected: 4,
 };
 
 export function VendorListView() {
+  const { t } = useI18n();
   const {
     search, setSearch,
     statusFilter, setStatusFilter,
@@ -107,9 +109,9 @@ export function VendorListView() {
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Vendors</h1>
+        <h1 className="text-2xl font-bold">{t("vendors.title")}</h1>
         <span className="text-sm text-on-surface-secondary">
-          {filtered.length} vendor{filtered.length !== 1 ? "s" : ""}
+          {filtered.length} {filtered.length !== 1 ? t("vendors.count.plural") : t("vendors.count.singular")}
         </span>
       </div>
 
@@ -141,8 +143,8 @@ export function VendorListView() {
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={Store}
-          title="No vendors found"
-          description={search || statusFilter ? "Try adjusting your filters" : "Import vendor data to get started"}
+          title={t("vendors.empty.title")}
+          description={search || statusFilter ? t("vendors.empty.adjust") : t("vendors.empty.import")}
         />
       ) : viewMode === "grid" ? (
         groupedByCategory ? (

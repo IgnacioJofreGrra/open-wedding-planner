@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Plus, MessageSquare, Trash2 } from "lucide-react";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface Thread {
   id: number;
@@ -18,6 +19,7 @@ interface ThreadListProps {
 }
 
 export function ThreadList({ threads, activeThreadId, onSelect, onCreate, onDelete, onRename }: ThreadListProps) {
+  const { t } = useI18n();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -48,7 +50,7 @@ export function ThreadList({ threads, activeThreadId, onSelect, onCreate, onDele
           className="flex items-center gap-2 w-full rounded-lg px-3 py-2 text-sm text-on-surface-secondary hover:bg-surface-hover transition-colors"
         >
           <Plus className="h-4 w-4" />
-          New thread
+          {t("threadList.newThread")}
         </button>
       </div>
       <div className="flex-1 overflow-y-auto">
@@ -132,7 +134,7 @@ export function ThreadList({ threads, activeThreadId, onSelect, onCreate, onDele
         })}
         {threads.length === 0 && (
           <div className="p-4 text-center text-sm text-on-surface-tertiary">
-            No threads yet. Start a new one!
+            {t("threadList.empty")}
           </div>
         )}
       </div>

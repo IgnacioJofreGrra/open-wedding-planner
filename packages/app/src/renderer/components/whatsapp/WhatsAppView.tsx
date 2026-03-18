@@ -12,8 +12,10 @@ import { EmptyState } from "../common/EmptyState";
 import { VendorPickerModal } from "./VendorPickerModal";
 import { MessageCircle } from "lucide-react";
 import type { GatewayEvent } from "@wedding-planner/shared";
+import { useI18n } from "../../i18n/use-i18n";
 
 export function WhatsAppView() {
+  const { t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedVendorId, setSelectedVendorId] = useState<number | null>(() => {
     const id = searchParams.get("vendorId");
@@ -83,7 +85,7 @@ export function WhatsAppView() {
         const latest = sorted[0];
         return {
           vendorId,
-          vendorName: latest.vendorName ?? "Unknown",
+          vendorName: latest.vendorName ?? t("inbox.unknown"),
           lastMessage: latest.bodyOriginal.slice(0, 80),
           lastMessageAt: latest.sentAt,
           unreadCount: msgs.filter((m) => !isOutbound(m.direction) && !m.isRead).length,
@@ -95,7 +97,7 @@ export function WhatsAppView() {
         const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
         return bTime - aTime;
       });
-  }, [allMessages]);
+  }, [allMessages, t]);
 
   // Filter messages for selected vendor
   const vendorMessages = useMemo(() => {
@@ -165,7 +167,7 @@ export function WhatsAppView() {
             {/* Vendor name header */}
             <div className="px-4 py-3 border-b border-border">
               <h2 className="text-sm font-semibold text-on-surface">
-                {contacts.find((c) => c.vendorId === selectedVendorId)?.vendorName ?? selectedVendorName ?? "Conversation"}
+                {contacts.find((c) => c.vendorId === selectedVendorId)?.vendorName ?? selectedVendorName ?? t("whatsapp.conversationFallback")}
               </h2>
             </div>
 
@@ -181,7 +183,7 @@ export function WhatsAppView() {
                   <div key={d.id} className="flex items-center justify-between py-1.5">
                     <div className="flex items-center gap-2 truncate flex-1 mr-3">
                       <span className="text-[10px] font-semibold uppercase tracking-wide text-on-surface-muted bg-surface rounded px-1.5 py-0.5 shrink-0">
-                        Draft
+                              {t("whatsapp.draft")}
                       </span>
                       <span className="text-xs text-on-surface-subtle truncate">
                         {d.bodyOriginal.slice(0, 60)}...
@@ -198,14 +200,14 @@ export function WhatsAppView() {
 
             <ComposeBox
               onSend={handleSend}
-              placeholder="Type a message..."
+              placeholder={t("whatsapp.composePlaceholder")}
             />
           </>
         ) : (
           <EmptyState
             icon={MessageCircle}
-            title="Select a conversation"
-            description="Choose a vendor from the list to view their WhatsApp messages"
+            title={t("whatsapp.select.title")}
+            description={t("whatsapp.select.description")}
           />
         )}
       </div>

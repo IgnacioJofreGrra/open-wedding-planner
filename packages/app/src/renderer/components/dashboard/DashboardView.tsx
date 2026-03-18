@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { WhileYouWereGone } from "./WhileYouWereGone";
 import { Markdown } from "../shared/Markdown";
+import { useI18n } from "../../i18n/use-i18n";
+import type { TranslationKey } from "../../stores/ui-language-store";
 
 interface DashboardStats {
   vendors: {
@@ -61,6 +63,7 @@ const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "succe
 };
 
 export function DashboardView() {
+  const { t } = useI18n();
   const connected = useGatewayStore((s) => s.connected);
   const { data: stats, loading } = useRequest<DashboardStats>("dashboard.stats");
   const { mutate: createThread } = useMutation<
@@ -99,13 +102,13 @@ export function DashboardView() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <h1 className="text-2xl font-bold">{t("dashboard.title")}</h1>
         <div className="flex items-center gap-2">
           <div
             className={`h-2.5 w-2.5 rounded-full ${connected ? "bg-green-500" : "bg-yellow-500 animate-pulse"}`}
           />
           {!connected && (
-            <span className="text-sm text-on-surface-secondary">Connecting...</span>
+            <span className="text-sm text-on-surface-secondary">{t("dashboard.connecting")}</span>
           )}
         </div>
       </div>
@@ -118,7 +121,7 @@ export function DashboardView() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Research vendors... (e.g. 'florists in Tuscany')"
+            placeholder={t("dashboard.searchPlaceholder")}
             disabled={researching}
             className="w-full rounded-xl border border-border bg-surface-elevated py-3 pl-10 pr-4 text-sm text-on-surface placeholder-placeholder focus:border-blue-500 focus:outline-none"
           />
@@ -143,7 +146,7 @@ export function DashboardView() {
                   <Users className="h-5 w-5 text-blue-400" />
                   <span className="text-2xl font-bold">{stats.vendors.total}</span>
                 </div>
-                <p className="mt-2 text-sm text-on-surface-secondary">Total Vendors</p>
+                <p className="mt-2 text-sm text-on-surface-secondary">{t("dashboard.totalVendors")}</p>
                 <div className="mt-2 flex flex-wrap gap-1">
                   {Object.entries(stats.vendors.byStatus).map(([status, count]) => (
                     <Badge key={status} variant={STATUS_CONFIG[status]?.variant ?? "default"}>
@@ -170,7 +173,7 @@ export function DashboardView() {
                       of <CurrencyDisplay amount={stats.budget.total} currency={stats.budget.currency} className="text-on-surface-secondary" /> budget
                     </>
                   ) : (
-                    "Estimated costs"
+                    t("dashboard.estimatedCosts")
                   )}
                 </p>
                 {stats.budget.total > 0 && (
@@ -198,14 +201,14 @@ export function DashboardView() {
                   <Inbox className="h-5 w-5 text-purple-400" />
                   <span className="text-2xl font-bold">{stats.unreadMessages}</span>
                 </div>
-                <p className="mt-2 text-sm text-on-surface-secondary">Unread Messages</p>
+                <p className="mt-2 text-sm text-on-surface-secondary">{t("dashboard.unreadMessages")}</p>
               </CardContent>
             </Card>
 
             {stats.vendors.byCategory.length > 0 && (
               <Card>
                 <CardContent>
-                  <p className="text-sm text-on-surface-secondary mb-2">By Category</p>
+                  <p className="text-sm text-on-surface-secondary mb-2">{t("dashboard.byCategory")}</p>
                   <div className="space-y-1">
                     {stats.vendors.byCategory.slice(0, 4).map((cat) => (
                       <div key={cat.categoryId} className="flex items-center justify-between text-sm">
@@ -222,7 +225,7 @@ export function DashboardView() {
           {/* Recent Activity */}
           {stats.recentActivity.length > 0 && (
             <div>
-              <h2 className="text-lg font-semibold mb-3">Recent Activity</h2>
+              <h2 className="text-lg font-semibold mb-3">{t("dashboard.recentActivity")}</h2>
               <Card>
                 <CardContent className="divide-y divide-border-subtle">
                   {stats.recentActivity.map((task) => (
@@ -304,19 +307,21 @@ function ActivityIcon({ type, status }: { type: string; status: string }) {
   }
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  research: "Research",
-  outreach: "Outreach",
-  action: "AI Action",
-  "voice-call": "Voice Call",
-  "whatsapp-in": "WhatsApp Received",
-  "whatsapp-out": "WhatsApp Sent",
-  parse: "Parse",
-  translate: "Translate",
+const TYPE_LABELS: Record<string, TranslationKey> = {
+  research: "dashboard.activity.research",
+  outreach: "dashboard.activity.outreach",
+  action: "dashboard.activity.action",
+  "voice-call": "dashboard.activity.voice-call",
+  "whatsapp-in": "dashboard.activity.whatsapp-in",
+  "whatsapp-out": "dashboard.activity.whatsapp-out",
+  parse: "dashboard.activity.parse",
+  translate: "dashboard.activity.translate",
 };
 
 function ActivityLabel({ type, vendorName }: { type: string; vendorName: string | null }) {
-  const label = TYPE_LABELS[type] ?? type;
+  const { t } = useI18n();
+  const labelKey = TYPE_LABELS[type];
+  const label = labelKey ? t(labelKey) : type;
   if (vendorName) return <>{label} &middot; {vendorName}</>;
   return <>{label}</>;
 }

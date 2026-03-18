@@ -1,5 +1,6 @@
 import { Badge } from "../common/Badge";
 import { CurrencyDisplay } from "../common/CurrencyDisplay";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface LineItem {
   id: number;
@@ -25,15 +26,16 @@ export function QuoteLineItems({
   lineItems: LineItem[];
   currency: string;
 }) {
+  const { t } = useI18n();
   if (lineItems.length === 0) return null;
 
   return (
     <table className="w-full text-sm">
       <thead>
         <tr className="border-b border-border text-left text-on-surface-secondary">
-          <th className="pb-2 font-medium">Item</th>
-          <th className="pb-2 font-medium">Type</th>
-          <th className="pb-2 font-medium text-right">Amount</th>
+          <th className="pb-2 font-medium">{t("vendor.quotes.item")}</th>
+          <th className="pb-2 font-medium">{t("vendor.quotes.type")}</th>
+          <th className="pb-2 font-medium text-right">{t("vendor.quotes.amount")}</th>
         </tr>
       </thead>
       <tbody>

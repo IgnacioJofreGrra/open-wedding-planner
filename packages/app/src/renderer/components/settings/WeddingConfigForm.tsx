@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRequest, useMutation } from "../../hooks/useRequest";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface WeddingConfig {
   weddingDate: string | null;
@@ -16,6 +17,7 @@ interface WeddingConfig {
 }
 
 export function WeddingConfigForm() {
+  const { t } = useI18n();
   const { data, loading } = useRequest<WeddingConfig>("wedding-config.get");
   const { mutate: updateConfig, loading: saving } = useMutation<
     Partial<WeddingConfig>,
@@ -53,24 +55,24 @@ export function WeddingConfigForm() {
   }
 
   if (loading) {
-    return <div className="animate-pulse text-on-surface-tertiary">Loading settings...</div>;
+    return <div className="animate-pulse text-on-surface-tertiary">{t("settings.wedding.loading")}</div>;
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <h2 className="text-lg font-semibold">Wedding Details</h2>
+      <h2 className="text-lg font-semibold">{t("settings.wedding.title")}</h2>
 
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Couple Names">
+        <Field label={t("settings.wedding.coupleNames")}>
           <input
             type="text"
             value={form.coupleNames ?? ""}
             onChange={(e) => update("coupleNames", e.target.value || null)}
-            placeholder="e.g. Alex & Jordan"
+            placeholder={t("settings.wedding.coupleNamesPlaceholder")}
           />
         </Field>
 
-        <Field label="Wedding Date">
+        <Field label={t("settings.wedding.date")}>
           <input
             type="date"
             value={form.weddingDate ?? ""}
@@ -78,7 +80,7 @@ export function WeddingConfigForm() {
           />
         </Field>
 
-        <Field label="Guest Count">
+        <Field label={t("settings.wedding.guestCount")}>
           <input
             type="number"
             value={form.guestCount ?? ""}
@@ -89,7 +91,7 @@ export function WeddingConfigForm() {
           />
         </Field>
 
-        <Field label="Total Budget">
+        <Field label={t("settings.wedding.totalBudget")}>
           <input
             type="number"
             value={form.totalBudget ?? ""}
@@ -100,28 +102,30 @@ export function WeddingConfigForm() {
           />
         </Field>
 
-        <Field label="Currency">
+        <Field label={t("settings.wedding.currency")}>
           <select
             value={form.currency}
             onChange={(e) => update("currency", e.target.value)}
           >
-            <option value="EUR">EUR</option>
-            <option value="USD">USD</option>
-            <option value="GBP">GBP</option>
-            <option value="CAD">CAD</option>
+            <option value="EUR">EUR — Euro</option>
+            <option value="USD">USD — Dólar estadounidense</option>
+            <option value="GBP">GBP — Libra esterlina</option>
+            <option value="CAD">CAD — Dólar canadiense</option>
+            <option value="CLP">CLP — Peso chileno</option>
+            <option value="UYU">UYU — Peso uruguayo</option>
           </select>
         </Field>
 
-        <Field label="Location">
+        <Field label={t("settings.wedding.location")}>
           <input
             type="text"
             value={form.location ?? ""}
             onChange={(e) => update("location", e.target.value || null)}
-            placeholder="Ischia, Italy"
+            placeholder={t("settings.wedding.locationPlaceholder")}
           />
         </Field>
 
-        <Field label="Email">
+        <Field label={t("settings.wedding.email")}>
           <input
             type="email"
             value={form.email ?? ""}
@@ -130,7 +134,7 @@ export function WeddingConfigForm() {
           />
         </Field>
 
-        <Field label="Languages">
+        <Field label={t("settings.wedding.languages")}>
           <input
             type="text"
             value={form.languagePreferences.join(", ")}
@@ -145,30 +149,30 @@ export function WeddingConfigForm() {
         </Field>
       </div>
 
-      <Field label="Dietary Requirements">
+      <Field label={t("settings.wedding.dietary")}>
         <textarea
           rows={2}
           value={form.dietaryRequirements ?? ""}
           onChange={(e) => update("dietaryRequirements", e.target.value || null)}
-          placeholder="Any dietary needs for guests..."
+          placeholder={t("settings.wedding.dietaryPlaceholder")}
         />
       </Field>
 
-      <Field label="Alcohol Preferences">
+      <Field label={t("settings.wedding.alcohol")}>
         <textarea
           rows={2}
           value={form.alcoholPreferences ?? ""}
           onChange={(e) => update("alcoholPreferences", e.target.value || null)}
-          placeholder="Wine, cocktails, open bar..."
+          placeholder={t("settings.wedding.alcoholPlaceholder")}
         />
       </Field>
 
-      <Field label="Other Important Info">
+      <Field label={t("settings.wedding.otherInfo")}>
         <textarea
           rows={3}
           value={form.otherInfo ?? ""}
           onChange={(e) => update("otherInfo", e.target.value || null)}
-          placeholder="Any other important details about the wedding..."
+          placeholder={t("settings.wedding.otherInfoPlaceholder")}
         />
       </Field>
 
@@ -178,10 +182,10 @@ export function WeddingConfigForm() {
           disabled={saving}
           className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50"
         >
-          {saving ? "Saving..." : "Save Settings"}
+          {saving ? t("settings.search.saving") : t("settings.wedding.save")}
         </button>
         {saved && (
-          <span className="text-sm text-success">Settings saved</span>
+          <span className="text-sm text-success">{t("settings.wedding.saved")}</span>
         )}
       </div>
     </form>
@@ -192,7 +196,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <label className="block">
       <span className="mb-1 block text-sm text-on-surface-secondary">{label}</span>
-      <div className="[&>input]:w-full [&>input]:rounded-lg [&>input]:border [&>input]:border-border [&>input]:bg-surface-elevated [&>input]:px-3 [&>input]:py-2 [&>input]:text-sm [&>input]:text-on-surface [&>input]:outline-none [&>input]:focus:border-border-hover [&>select]:w-full [&>select]:rounded-lg [&>select]:border [&>select]:border-border [&>select]:bg-surface-elevated [&>select]:px-3 [&>select]:py-2 [&>select]:text-sm [&>select]:text-on-surface [&>select]:outline-none [&>textarea]:w-full [&>textarea]:rounded-lg [&>textarea]:border [&>textarea]:border-border [&>textarea]:bg-surface-elevated [&>textarea]:px-3 [&>textarea]:py-2 [&>textarea]:text-sm [&>textarea]:text-on-surface [&>textarea]:outline-none [&>textarea]:resize-none">
+      <div className="[&>input]:w-full [&>input]:rounded-lg [&>input]:border [&>input]:border-border [&>input]:bg-surface-elevated [&>input]:px-3 [&>input]:py-2 [&>input]:text-sm [&>input]:text-on-surface [&>input]:outline-none [&>input]:focus:border-border-hover [&>select]:w-full [&>select]:rounded-lg [&>select]:border [&>select]:border-border [&>select]:bg-surface-elevated [&>select]:px-3 [&>select]:py-2 [&>select]:text-sm [&>select]:text-on-surface [&>select]:outline-none [&>select]:[color-scheme:dark] [&>textarea]:w-full [&>textarea]:rounded-lg [&>textarea]:border [&>textarea]:border-border [&>textarea]:bg-surface-elevated [&>textarea]:px-3 [&>textarea]:py-2 [&>textarea]:text-sm [&>textarea]:text-on-surface [&>textarea]:outline-none [&>textarea]:resize-none">
         {children}
       </div>
     </label>

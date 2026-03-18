@@ -1,8 +1,17 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { useI18n } from "../../i18n/use-i18n";
+import type { TranslationKey } from "../../stores/ui-language-store";
 
 const STATUSES = ["researched", "contacted", "quoted", "booked", "rejected"] as const;
+const STATUS_KEYS: Record<(typeof STATUSES)[number], TranslationKey> = {
+  researched: "vendor.status.researched",
+  contacted: "vendor.status.contacted",
+  quoted: "vendor.status.quoted",
+  booked: "vendor.status.booked",
+  rejected: "vendor.status.rejected",
+};
 
 interface VendorActionsProps {
   vendor: { id: number; status: string };
@@ -10,6 +19,7 @@ interface VendorActionsProps {
 }
 
 export function VendorActions({ vendor, onStatusChange }: VendorActionsProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
 
   return (
@@ -18,7 +28,7 @@ export function VendorActions({ vendor, onStatusChange }: VendorActionsProps) {
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1 rounded-lg border border-border bg-surface-elevated px-3 py-1.5 text-sm text-on-surface hover:bg-surface-active transition-colors"
       >
-        Status
+        {t("vendor.actions.status")}
         <ChevronDown className="h-3.5 w-3.5" />
       </button>
 
@@ -41,7 +51,7 @@ export function VendorActions({ vendor, onStatusChange }: VendorActionsProps) {
                 disabled={status === vendor.status}
                 className="w-full px-3 py-1.5 text-left text-sm capitalize text-on-surface-secondary hover:bg-surface-hover disabled:text-on-surface-faint disabled:cursor-default"
               >
-                {status}
+                {t(STATUS_KEYS[status])}
               </button>
             ))}
           </motion.div>
