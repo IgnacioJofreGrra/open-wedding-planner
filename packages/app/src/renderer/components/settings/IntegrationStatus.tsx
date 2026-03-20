@@ -5,15 +5,17 @@ import { WhatsAppSetup } from "./WhatsAppSetup";
 import { GoogleServicesSetup } from "./GoogleServicesSetup";
 import { useGatewayStore } from "../../stores/gateway-store";
 import type { GatewayEvent } from "@wedding-planner/shared";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface ChannelStatuses {
-  whatsapp: "disconnected" | "connecting" | "connected";
+  whatsapp: "disconnected" | "connecting" | "connected" | "failed";
 }
 
 export function IntegrationStatus() {
+  const { t } = useI18n();
   const gatewayState = useGatewayStore((s) => s.state);
   const [statuses, setStatuses] = useState<ChannelStatuses>(() => ({
-    whatsapp: gatewayState?.channels?.whatsapp ?? "disconnected",
+    whatsapp: (gatewayState?.channels?.whatsapp as ChannelStatuses["whatsapp"]) ?? "disconnected",
   }));
   const [whatsappQr, setWhatsappQr] = useState<string | null>(null);
 
@@ -32,9 +34,16 @@ export function IntegrationStatus() {
         channel: string;
         status: string;
       };
+      const safeStatus: ChannelStatuses["whatsapp"] =
+        status === "connected" ||
+        status === "connecting" ||
+        status === "disconnected" ||
+        status === "failed"
+          ? status
+          : "disconnected";
       setStatuses((prev) => ({
         ...prev,
-        [channel]: status,
+        [channel]: safeStatus,
       }));
       if (channel === "whatsapp" && status === "connected") {
         setWhatsappQr(null);
@@ -62,7 +71,7 @@ export function IntegrationStatus() {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-4">Integrations</h2>
+      <h2 className="text-lg font-semibold mb-4">{t("settings.tabs.integrations")}</h2>
       <div className="space-y-4">
         <WhatsAppSetup
           status={statuses.whatsapp}
@@ -80,19 +89,22 @@ export function StatusIndicator({
   status,
   label,
 }: {
-  status: "disconnected" | "connecting" | "connected";
+  status: "disconnected" | "connecting" | "connected" | "failed";
   label?: string;
 }) {
+  const { t } = useI18n();
   const colors = {
     disconnected: "bg-on-surface-faint",
     connecting: "bg-warning animate-pulse",
     connected: "bg-success",
+    failed: "bg-error",
   };
 
   const labels = {
-    disconnected: "Not connected",
-    connecting: "Connecting...",
-    connected: "Connected",
+    disconnected: t("settings.status.disconnected"),
+    connecting: t("settings.status.connecting"),
+    connected: t("settings.status.connected"),
+    failed: t("settings.status.failed"),
   };
 
   return (

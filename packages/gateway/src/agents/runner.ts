@@ -49,6 +49,23 @@ export interface ToolFactoryContext {
   embeddingService?: unknown;
 }
 
+function getPreferredLanguageFromConfig(sqlite: unknown): string | null {
+  try {
+    const db = sqlite as {
+      prepare: (sql: string) => { get: () => { language_preferences?: string | null } | undefined };
+    };
+    const row = db
+      .prepare("SELECT language_preferences FROM wedding_config LIMIT 1")
+      .get();
+    if (!row?.language_preferences) return null;
+    const prefs = JSON.parse(row.language_preferences) as string[];
+    if (!Array.isArray(prefs) || prefs.length === 0) return null;
+    return String(prefs[0] || "").toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
 export class AgentRunner {
   async run(
     config: TaskConfig,
@@ -104,6 +121,11 @@ export class AgentRunner {
       let systemPrompt = config.systemPrompt;
       if (!builtInTools) {
         systemPrompt += "\n\nIMPORTANT: Use the provided tools (search, scrape, dispatch) for web access. Do NOT ask the user to enable WebSearch, WebFetch, or any built-in tools — they are not available. Use the tools you have.";
+      }
+
+      const preferredLanguage = getPreferredLanguageFromConfig(toolCtx.sqlite);
+      if (preferredLanguage === "es") {
+        systemPrompt += "\n\nIDIOMA: Responde siempre en español claro y natural, salvo que el usuario pida explícitamente otro idioma.";
       }
 
       const model = config.model === "subagent" ? await getSubagentModel() : await getModel();

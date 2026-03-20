@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useRequest, useMutation } from "../../hooks/useRequest";
 import { StatusIndicator } from "./IntegrationStatus";
 import { Mail, Upload, ClipboardPaste } from "lucide-react";
+import { useI18n } from "../../i18n/use-i18n";
+import type { TranslationKey } from "../../stores/ui-language-store";
 
 interface GoogleStatus {
   connected: boolean;
@@ -15,11 +17,15 @@ interface WeddingConfig {
   coupleEmail?: string;
 }
 
-const AVAILABLE_SERVICES = [
-  { id: "gmail", label: "Gmail", description: "Send and receive emails" },
-  { id: "calendar", label: "Calendar", description: "Manage calendar events" },
-  { id: "contacts", label: "Contacts", description: "Access Google Contacts" },
-  { id: "drive", label: "Drive", description: "Access Google Drive files" },
+interface GoogleConnectResult {
+  authUrl?: string;
+}
+
+const AVAILABLE_SERVICES: Array<{ id: string; labelKey: TranslationKey; descriptionKey: TranslationKey }> = [
+  { id: "gmail", labelKey: "settings.google.service.gmail", descriptionKey: "settings.google.service.gmailDescription" },
+  { id: "calendar", labelKey: "settings.google.service.calendar", descriptionKey: "settings.google.service.calendarDescription" },
+  { id: "contacts", labelKey: "settings.google.service.contacts", descriptionKey: "settings.google.service.contactsDescription" },
+  { id: "drive", labelKey: "settings.google.service.drive", descriptionKey: "settings.google.service.driveDescription" },
 ];
 
 function openExternal(url: string) {
@@ -31,10 +37,11 @@ function openExternal(url: string) {
 }
 
 export function GoogleServicesSetup() {
+  const { t } = useI18n();
   const { data: status, refetch } = useRequest<GoogleStatus>("google.status");
   const { data: weddingConfig } = useRequest<WeddingConfig>("wedding-config.get");
   const { mutate: setCredentials, loading: settingCreds } = useMutation("google.set-credentials");
-  const { mutate: connect, loading: connecting } = useMutation("google.connect");
+  const { mutate: connect, loading: connecting } = useMutation<{ email: string; services: string[] }, GoogleConnectResult>("google.connect");
   const { mutate: disconnect } = useMutation("google.disconnect");
   const { mutate: updateAutoSend } = useMutation("google.update-auto-send");
 
@@ -73,7 +80,7 @@ export function GoogleServicesSetup() {
       await setCredentials({ credentialsPath: result.filePaths[0] });
       refetch();
     } catch (err) {
-      setCredError(err instanceof Error ? err.message : "Failed to save credentials");
+      setCredError(err instanceof Error ? err.message : t("settings.google.failedSaveCredentials"));
     }
   }
 
@@ -84,7 +91,7 @@ export function GoogleServicesSetup() {
     try {
       JSON.parse(pastedJson.trim());
     } catch {
-      setCredError("Invalid JSON. Make sure you copied the entire client_secret file contents.");
+      setCredError(t("settings.google.invalidJson"));
       return;
     }
 
@@ -92,7 +99,7 @@ export function GoogleServicesSetup() {
       await setCredentials({ credentialsJson: pastedJson.trim() });
       refetch();
     } catch (err) {
-      setCredError(err instanceof Error ? err.message : "Failed to save credentials");
+      setCredError(err instanceof Error ? err.message : t("settings.google.failedSaveCredentials"));
     }
   }
 
@@ -109,7 +116,7 @@ export function GoogleServicesSetup() {
         setTimeout(() => clearInterval(interval), 5 * 60 * 1000);
       }
     } catch (err) {
-      setConnectError(err instanceof Error ? err.message : "Failed to connect");
+      setConnectError(err instanceof Error ? err.message : t("settings.google.failedConnect"));
     }
   }
 
@@ -127,11 +134,11 @@ export function GoogleServicesSetup() {
         <div className="flex items-center gap-3">
           <Mail className="h-5 w-5 text-accent" />
           <div>
-            <p className="text-sm font-medium text-on-surface">Google Services</p>
+            <p className="text-sm font-medium text-on-surface">{t("settings.google.title")}</p>
             <p className="text-xs text-on-surface-secondary">
               {isConnected
-                ? `Connected as ${status?.email}`
-                : "Connect Gmail, Calendar, Drive, and more"}
+                ? t("settings.google.connectedAs").replace("{{email}}", status?.email ?? "")
+                : t("settings.google.subtitle")}
             </p>
           </div>
         </div>
@@ -142,13 +149,12 @@ export function GoogleServicesSetup() {
       {step === "credentials" && (
         <div className="space-y-3">
           <p className="text-xs text-on-surface-secondary">
-            First, provide your Google Cloud OAuth credentials (client_secret.json).
-            You can create one at{" "}
+            {t("settings.google.credentialsHelp")}{" "}
             <button
               onClick={() => openExternal("https://console.cloud.google.com/apis/credentials")}
               className="text-accent hover:underline"
             >
-              Google Cloud Console
+              {t("settings.google.cloudConsole")}
             </button>
             .
           </p>
@@ -162,7 +168,7 @@ export function GoogleServicesSetup() {
               <textarea
                 value={pastedJson}
                 onChange={(e) => setPastedJson(e.target.value)}
-                placeholder='Paste your client_secret JSON here...'
+                placeholder={t("settings.google.pastePlaceholder")}
                 rows={6}
                 className="w-full rounded-lg border border-border bg-surface-elevated px-3 py-2 text-xs font-mono text-on-surface placeholder:text-placeholder focus:border-accent focus:outline-none resize-none"
               />
@@ -172,13 +178,13 @@ export function GoogleServicesSetup() {
                   disabled={settingCreds || !pastedJson.trim()}
                   className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50 transition-colors"
                 >
-                  {settingCreds ? "Saving..." : "Save Credentials"}
+                  {settingCreds ? t("settings.search.saving") : t("settings.google.saveCredentials")}
                 </button>
                 <button
                   onClick={() => setPasteMode(false)}
                   className="rounded-lg border border-border px-3 py-2 text-sm text-on-surface-secondary hover:bg-surface-hover transition-colors"
                 >
-                  Cancel
+                  {t("timeline.cancel")}
                 </button>
               </div>
             </div>
@@ -190,14 +196,14 @@ export function GoogleServicesSetup() {
                 className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50 transition-colors"
               >
                 <Upload className="h-4 w-4" />
-                {settingCreds ? "Saving..." : "Upload File"}
+                {settingCreds ? t("settings.search.saving") : t("settings.google.uploadFile")}
               </button>
               <button
                 onClick={() => setPasteMode(true)}
                 className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-on-surface-secondary hover:bg-surface-hover transition-colors"
               >
                 <ClipboardPaste className="h-4 w-4" />
-                Paste JSON
+                {t("settings.google.pasteJson")}
               </button>
             </div>
           )}
@@ -215,7 +221,7 @@ export function GoogleServicesSetup() {
             className="w-full rounded-lg border border-border bg-surface-elevated px-3 py-2 text-sm text-on-surface placeholder:text-placeholder focus:border-accent focus:outline-none"
           />
           <div className="space-y-2">
-            <p className="text-xs text-on-surface-secondary">Select services to authorize:</p>
+            <p className="text-xs text-on-surface-secondary">{t("settings.google.selectServices")}</p>
             {AVAILABLE_SERVICES.map((svc) => (
               <label
                 key={svc.id}
@@ -228,8 +234,8 @@ export function GoogleServicesSetup() {
                   className="rounded"
                 />
                 <div>
-                  <p className="text-sm text-on-surface">{svc.label}</p>
-                  <p className="text-xs text-on-surface-secondary">{svc.description}</p>
+                  <p className="text-sm text-on-surface">{t(svc.labelKey)}</p>
+                  <p className="text-xs text-on-surface-secondary">{t(svc.descriptionKey)}</p>
                 </div>
               </label>
             ))}
@@ -244,7 +250,7 @@ export function GoogleServicesSetup() {
             disabled={connecting || !email || selectedServices.length === 0}
             className="w-full rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50 transition-colors"
           >
-            {connecting ? "Opening browser..." : "Connect Google Account"}
+            {connecting ? t("settings.google.openingBrowser") : t("settings.google.connectAccount")}
           </button>
         </div>
       )}
@@ -265,9 +271,9 @@ export function GoogleServicesSetup() {
 
           <div className="flex items-center justify-between rounded-lg border border-border bg-surface-elevated px-4 py-3">
             <div>
-              <p className="text-sm font-medium text-on-surface">Auto-send messages</p>
+              <p className="text-sm font-medium text-on-surface">{t("settings.google.autoSend")}</p>
               <p className="text-xs text-on-surface-secondary">
-                When off, outgoing emails are saved as drafts for your review
+                {t("settings.google.autoSendDescription")}
               </p>
             </div>
             <button
@@ -291,7 +297,7 @@ export function GoogleServicesSetup() {
             }}
             className="w-full rounded-lg border border-error/30 px-4 py-2 text-sm text-error hover:bg-error-bg transition-colors"
           >
-            Disconnect
+            {t("settings.google.disconnect")}
           </button>
         </div>
       )}

@@ -10,7 +10,7 @@ export const weddingConfig = sqliteTable("wedding_config", {
   coupleNames: text("couple_names"),
   coupleEmail: text("couple_email"),
   location: text("location"),
-  languagePreferences: text("language_preferences").default('["en","it"]').notNull(),
+  languagePreferences: text("language_preferences").default('["es","en"]').notNull(),
   dietaryRequirements: text("dietary_requirements"),
   alcoholPreferences: text("alcohol_preferences"),
   otherInfo: text("other_info"),

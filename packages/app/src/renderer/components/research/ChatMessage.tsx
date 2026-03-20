@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight, Wrench } from "lucide-react";
 import { ToolActivityCard } from "./ToolActivityCard";
 import { VendorResultCard } from "./VendorResultCard";
 import { Markdown } from "../shared/Markdown";
+import { useI18n } from "../../i18n/use-i18n";
 
 interface ToolCall {
   toolName: string;
@@ -41,6 +42,7 @@ function summarizeToolCalls(toolCalls: ToolCall[]) {
 }
 
 export function ChatMessage({ role, content, toolCalls, vendors }: MessageProps) {
+  const { t } = useI18n();
   const isUser = role === "user";
   const [toolsExpanded, setToolsExpanded] = useState(false);
 
@@ -50,7 +52,7 @@ export function ChatMessage({ role, content, toolCalls, vendors }: MessageProps)
     <div className="py-4">
       <div className="flex items-center gap-2 mb-1">
         <span className={`text-xs font-medium ${isUser ? "text-blue-400" : "text-purple-400"}`}>
-          {isUser ? "You" : "Assistant"}
+          {isUser ? t("research.you") : t("research.assistant")}
         </span>
       </div>
 
@@ -67,7 +69,7 @@ export function ChatMessage({ role, content, toolCalls, vendors }: MessageProps)
               <ChevronRight className="h-3 w-3" />
             )}
             <Wrench className="h-3 w-3" />
-            <span>Used {visibleToolCalls.length} tools</span>
+            <span>{t("research.usedTools").replace("{{count}}", String(visibleToolCalls.length))}</span>
             <span className="text-on-surface-faint">({summarizeToolCalls(visibleToolCalls)})</span>
           </button>
           {toolsExpanded && (

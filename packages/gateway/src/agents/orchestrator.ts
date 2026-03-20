@@ -16,6 +16,20 @@ import { PermissionManager } from "../tools/permission-wrapper.js";
 import type { UserResponse } from "../tools/permission-wrapper.js";
 import { getWorkspaceDir } from "../config/paths.js";
 
+function toUserFacingErrorMessage(rawMessage: string): string {
+  const lower = rawMessage.toLowerCase();
+
+  if (
+    lower.includes("credit balance is too low") ||
+    lower.includes("plans & billing") ||
+    lower.includes("purchase credits")
+  ) {
+    return "No se pudo completar la tarea porque tu saldo de Anthropic es insuficiente. Ve a Planes y Facturacion para recargar, o cambia el proveedor de IA en Configuracion.";
+  }
+
+  return rawMessage;
+}
+
 export class Orchestrator {
   private agents = new Map<string, BaseAgent>();
   private configs = new Map<string, TaskConfig>();
@@ -359,7 +373,8 @@ export class Orchestrator {
         }
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Unknown error";
+      const rawMessage = err instanceof Error ? err.message : "Error desconocido";
+      const message = toUserFacingErrorMessage(rawMessage);
 
       await this.db
         .update(agentTasks)
@@ -387,7 +402,7 @@ export class Orchestrator {
         await this.db.insert(researchMessages).values({
           threadId: failedInput.threadId,
           role: "assistant",
-          content: `I encountered an error and couldn't complete this task: ${message}`,
+          content: `No pude completar esta tarea por un error: ${message}`,
         });
         this.broadcast({
           name: "research.messageComplete",

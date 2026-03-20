@@ -430,11 +430,11 @@ export async function startGateway(options: GatewayOptions = {}) {
       if (pendingWhatsAppPermissionId) {
         const normalized = body.trim().toLowerCase();
         let response: UserResponse | null = null;
-        if (normalized === "yes" || normalized === "y" || normalized === "allow") {
+        if (normalized === "yes" || normalized === "y" || normalized === "allow" || normalized === "si" || normalized === "sí") {
           response = "allow";
-        } else if (normalized === "always" || normalized === "always allow") {
+        } else if (normalized === "always" || normalized === "always allow" || normalized === "siempre") {
           response = "always-allow";
-        } else if (normalized === "no" || normalized === "n" || normalized === "deny") {
+        } else if (normalized === "no" || normalized === "n" || normalized === "deny" || normalized === "denegar") {
           response = "deny";
         }
 
@@ -541,6 +541,19 @@ export async function startGateway(options: GatewayOptions = {}) {
 
   // Intercept broadcasts to deliver research responses via WhatsApp
   const origBroadcastFn = wsServer.broadcast.bind(wsServer);
+
+  function normalizeWhatsAppAssistantText(text: string): string {
+    const trimmed = text.trim();
+    if (/^i'?m not sure i understand your question\.?/i.test(trimmed)) {
+      return "No estoy seguro de haber entendido tu pregunta. ¿Puedes darme más contexto o reformularla?";
+    }
+    if (/^i encountered an error and couldn't complete this task:/i.test(trimmed)) {
+      const detail = trimmed.replace(/^i encountered an error and couldn't complete this task:\s*/i, "");
+      return `No pude completar esta tarea por un error: ${detail}`;
+    }
+    return text;
+  }
+
   wsServer.broadcast = (event: GatewayEvent) => {
     origBroadcastFn(event);
 
@@ -563,7 +576,7 @@ export async function startGateway(options: GatewayOptions = {}) {
           .find((m) => m.role === "assistant");
         if (!lastAssistant) return;
 
-        const text = lastAssistant.content;
+        const text = normalizeWhatsAppAssistantText(lastAssistant.content);
         const chunks: string[] = [];
         for (let i = 0; i < text.length; i += 4000) {
           chunks.push(text.slice(i, i + 4000));
@@ -598,7 +611,7 @@ export async function startGateway(options: GatewayOptions = {}) {
         const userJid = whatsapp.getUserJid();
         if (userJid) {
           whatsapp
-            .send(userJid, "Something went wrong, try again.")
+            .send(userJid, "Algo salio mal. Intenta nuevamente.")
             .then(() => whatsapp.stopTyping(userJid));
         }
       }
@@ -618,11 +631,11 @@ export async function startGateway(options: GatewayOptions = {}) {
         if (userJid) {
           pendingWhatsAppPermissionId = data.requestId;
           const lines = [
-            `Permission needed: *${data.toolName}*`,
+            `Permiso requerido: *${data.toolName}*`,
             `"${data.toolDescription}"`,
-            ...(data.context ? [`Context: ${data.context}`] : []),
+            ...(data.context ? [`Contexto: ${data.context}`] : []),
             "",
-            "Reply: *yes*, *always*, or *no*",
+            "Responde: *si*, *siempre*, o *no*",
           ];
           whatsapp
             .send(userJid, lines.join("\n"))

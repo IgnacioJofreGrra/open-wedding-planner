@@ -97,7 +97,10 @@ async function createProviderModel(config: AIProviderConfig): Promise<LanguageMo
         apiKey: config.apiKey || "ollama",
         baseURL,
       });
-      return openai(config.model);
+      // OpenAI-compatible backends like Ollama often do not support
+      // Responses API input items (e.g. item_reference).
+      // Force Chat Completions API for broader compatibility.
+      return openai.chat(config.model as any);
     }
     default: {
       const _exhaustive: never = config.provider;

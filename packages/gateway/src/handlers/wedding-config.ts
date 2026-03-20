@@ -14,7 +14,7 @@ export function registerWeddingConfigHandlers(router: Router) {
         coupleNames: null,
         email: null,
         location: null,
-        languagePreferences: ["en", "it"],
+        languagePreferences: ["es", "en"],
         dietaryRequirements: null,
         alcoholPreferences: null,
         otherInfo: null,

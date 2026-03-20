@@ -54,12 +54,22 @@ interface DashboardStats {
   unreadMessages: number;
 }
 
-const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "success" | "warning" | "info" }> = {
-  prospect: { label: "Prospect", variant: "default" },
-  contacted: { label: "Contacted", variant: "info" },
-  negotiating: { label: "Negotiating", variant: "warning" },
-  booked: { label: "Booked", variant: "success" },
-  rejected: { label: "Rejected", variant: "default" },
+const STATUS_CONFIG: Record<string, { labelKey: TranslationKey; variant: "default" | "success" | "warning" | "info" }> = {
+  prospect: { labelKey: "dashboard.vendorStatus.prospect", variant: "default" },
+  contacted: { labelKey: "dashboard.vendorStatus.contacted", variant: "info" },
+  negotiating: { labelKey: "dashboard.vendorStatus.negotiating", variant: "warning" },
+  booked: { labelKey: "dashboard.vendorStatus.booked", variant: "success" },
+  rejected: { labelKey: "dashboard.vendorStatus.rejected", variant: "default" },
+};
+
+const ACTIVITY_STATUS_KEYS: Record<string, TranslationKey> = {
+  completed: "dashboard.status.completed",
+  ended: "dashboard.status.ended",
+  failed: "dashboard.status.failed",
+  running: "dashboard.status.running",
+  "in-progress": "dashboard.status.inProgress",
+  ringing: "dashboard.status.ringing",
+  queued: "dashboard.status.queued",
 };
 
 export function DashboardView() {
@@ -150,7 +160,7 @@ export function DashboardView() {
                 <div className="mt-2 flex flex-wrap gap-1">
                   {Object.entries(stats.vendors.byStatus).map(([status, count]) => (
                     <Badge key={status} variant={STATUS_CONFIG[status]?.variant ?? "default"}>
-                      {count} {STATUS_CONFIG[status]?.label ?? status}
+                      {count} {STATUS_CONFIG[status] ? t(STATUS_CONFIG[status].labelKey) : status}
                     </Badge>
                   ))}
                 </div>
@@ -169,9 +179,15 @@ export function DashboardView() {
                 </div>
                 <p className="mt-2 text-sm text-on-surface-secondary">
                   {stats.budget.total > 0 ? (
-                    <>
-                      of <CurrencyDisplay amount={stats.budget.total} currency={stats.budget.currency} className="text-on-surface-secondary" /> budget
-                    </>
+                    t("dashboard.ofBudget").replace(
+                      "{{amount}}",
+                      new Intl.NumberFormat(undefined, {
+                        style: "currency",
+                        currency: stats.budget.currency,
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      }).format(stats.budget.total),
+                    )
                   ) : (
                     t("dashboard.estimatedCosts")
                   )}
@@ -273,7 +289,7 @@ export function DashboardView() {
                                 : "default"
                         }
                       >
-                        {task.status}
+                        {ACTIVITY_STATUS_KEYS[task.status] ? t(ACTIVITY_STATUS_KEYS[task.status]) : task.status}
                       </Badge>
                     </div>
                   ))}

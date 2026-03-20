@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useRequest, useMutation } from "../../hooks/useRequest";
+import { useI18n } from "../../i18n/use-i18n";
 import { Card, CardContent } from "../common/Card";
 import { Badge } from "../common/Badge";
 import {
@@ -49,10 +50,26 @@ interface HeartbeatActivity {
 }
 
 export function WhileYouWereGone() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const { data, refetch } = useRequest<HeartbeatActivity>("dashboard.heartbeat-activity");
   const { mutate: approve } = useMutation<{ id: number }, unknown>("communications.approve");
   const { mutate: reject } = useMutation<{ id: number }, unknown>("communications.reject");
+
+  const STATUS_KEYS = {
+    completed: "dashboard.status.completed",
+    ended: "dashboard.status.ended",
+    failed: "dashboard.status.failed",
+    running: "dashboard.status.running",
+    "in-progress": "dashboard.status.inProgress",
+    ringing: "dashboard.status.ringing",
+    queued: "dashboard.status.queued",
+  } as const;
+
+  const statusLabel = (status: string) => {
+    const key = STATUS_KEYS[status as keyof typeof STATUS_KEYS];
+    return key ? t(key) : status;
+  };
 
   if (!data) return null;
 
@@ -76,10 +93,10 @@ export function WhileYouWereGone() {
     <div>
       <div className="flex items-center gap-2 mb-3">
         <Bot className="h-5 w-5 text-indigo-400" />
-        <h2 className="text-lg font-semibold">While You Were Gone</h2>
+        <h2 className="text-lg font-semibold">{t("dashboard.whileGone.title")}</h2>
         {data.lastRunAt && (
           <span className="text-xs text-on-surface-tertiary ml-auto">
-            Last run: {new Date(data.lastRunAt).toLocaleString()}
+            {t("dashboard.whileGone.lastRun")}: {new Date(data.lastRunAt).toLocaleString()}
           </span>
         )}
       </div>
@@ -89,15 +106,15 @@ export function WhileYouWereGone() {
           <CardContent>
             <p className="text-sm text-on-surface-secondary">
               {data.heartbeatEnabled
-                ? "No activity yet. The scheduled research agent will run automatically and results will appear here."
+                ? t("dashboard.whileGone.empty.enabled")
                 : (
                   <>
-                    Set up scheduled research to have an AI agent automatically find vendors while you're away.{" "}
+                    {t("dashboard.whileGone.empty.disabled")}{" "}
                     <button
                       onClick={() => navigate("/settings")}
                       className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2"
                     >
-                      Enable in Settings
+                      {t("dashboard.whileGone.enableInSettings")}
                     </button>
                   </>
                 )}
@@ -111,7 +128,7 @@ export function WhileYouWereGone() {
           <Card>
             <CardContent>
               <p className="text-xs font-medium text-on-surface-secondary mb-2 uppercase tracking-wide">
-                Research completed
+                {t("dashboard.whileGone.researchCompleted")}
               </p>
               <div className="space-y-2">
                 {data.tasks.map((task) => (
@@ -119,10 +136,10 @@ export function WhileYouWereGone() {
                     <Badge
                       variant={task.status === "completed" ? "success" : "danger"}
                     >
-                      {task.status}
+                      {statusLabel(task.status)}
                     </Badge>
                     <p className="text-sm text-on-surface-secondary flex-1">
-                      {task.summary ?? "No summary available"}
+                      {task.summary ?? t("dashboard.whileGone.noSummary")}
                     </p>
                     <span className="text-xs text-on-surface-tertiary shrink-0">
                       {task.completedAt
@@ -141,7 +158,7 @@ export function WhileYouWereGone() {
           <Card>
             <CardContent>
               <p className="text-xs font-medium text-on-surface-secondary mb-2 uppercase tracking-wide">
-                Vendors found
+                {t("dashboard.whileGone.vendorsFound")}
               </p>
               <div className="space-y-1">
                 {data.newVendors.map((vendor) => (
@@ -169,7 +186,7 @@ export function WhileYouWereGone() {
           <Card>
             <CardContent>
               <p className="text-xs font-medium text-on-surface-secondary mb-2 uppercase tracking-wide">
-                Drafts awaiting review
+                {t("dashboard.whileGone.draftsAwaitingReview")}
               </p>
               <div className="space-y-3 divide-y divide-border-subtle">
                 {data.drafts.map((draft) => (
@@ -177,7 +194,7 @@ export function WhileYouWereGone() {
                     <div className="flex items-center gap-2 mb-1">
                       <MessageSquare className="h-4 w-4 text-purple-400 shrink-0" />
                       <span className="text-sm font-medium text-on-surface">
-                        {draft.vendorName ?? `Vendor #${draft.vendorId}`}
+                        {draft.vendorName ?? t("dashboard.whileGone.vendorFallback").replace("{{id}}", String(draft.vendorId))}
                       </span>
                       <Badge variant="info">{draft.channel}</Badge>
                     </div>
@@ -195,21 +212,21 @@ export function WhileYouWereGone() {
                         className="flex items-center gap-1 rounded-md bg-green-600/20 px-2.5 py-1 text-xs font-medium text-green-400 hover:bg-green-600/30 transition-colors"
                       >
                         <Check className="h-3 w-3" />
-                        Send
+                        {t("dashboard.whileGone.send")}
                       </button>
                       <button
                         onClick={() => navigate(`/inbox`)}
                         className="flex items-center gap-1 rounded-md bg-surface-elevated px-2.5 py-1 text-xs font-medium text-on-surface-secondary hover:bg-surface-active transition-colors"
                       >
                         <Pencil className="h-3 w-3" />
-                        Edit
+                        {t("dashboard.whileGone.edit")}
                       </button>
                       <button
                         onClick={() => handleReject(draft.id)}
                         className="flex items-center gap-1 rounded-md bg-red-600/20 px-2.5 py-1 text-xs font-medium text-red-400 hover:bg-red-600/30 transition-colors"
                       >
                         <X className="h-3 w-3" />
-                        Discard
+                        {t("dashboard.whileGone.discard")}
                       </button>
                     </div>
                   </div>
@@ -224,14 +241,14 @@ export function WhileYouWereGone() {
           <Card>
             <CardContent>
               <p className="text-xs font-medium text-on-surface-secondary mb-2 uppercase tracking-wide">
-                Messages sent
+                {t("dashboard.whileGone.messagesSent")}
               </p>
               <div className="space-y-1">
                 {data.sent.map((msg) => (
                   <div key={msg.id} className="flex items-center gap-2 py-1">
                     <Send className="h-4 w-4 text-green-400 shrink-0" />
                     <span className="text-sm text-on-surface-secondary">
-                      {msg.vendorName ?? `Vendor #${msg.vendorId}`}
+                      {msg.vendorName ?? t("dashboard.whileGone.vendorFallback").replace("{{id}}", String(msg.vendorId))}
                     </span>
                     <Badge variant="default">{msg.channel}</Badge>
                     <span className="text-xs text-on-surface-tertiary ml-auto">

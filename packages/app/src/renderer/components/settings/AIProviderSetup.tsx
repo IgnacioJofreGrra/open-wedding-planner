@@ -278,8 +278,8 @@ export function AIProviderSetup() {
           </div>
           {!config.hasOpenaiApiKey && (
             <p className="text-xs text-on-surface-tertiary">
-              Uses <code className="rounded bg-surface-active px-1">text-embedding-3-small</code> for vector embeddings.
-              Get a key at{" "}
+              {t("settings.ai.openaiEmbeddingHelp")} <code className="rounded bg-surface-active px-1">text-embedding-3-small</code>.
+              {" "}{t("settings.ai.openaiGetKeyAt")}{" "}
               <code className="rounded bg-surface-active px-1">platform.openai.com/api-keys</code>
             </p>
           )}

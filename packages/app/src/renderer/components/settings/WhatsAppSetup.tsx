@@ -5,7 +5,7 @@ import { MessageCircle } from "lucide-react";
 import { useI18n } from "../../i18n/use-i18n";
 
 interface WhatsAppSetupProps {
-  status: "disconnected" | "connecting" | "connected";
+  status: "disconnected" | "connecting" | "connected" | "failed";
   qrCode: string | null;
   autoSend: boolean;
   onAutoSendChange: (value: boolean) => void;
@@ -41,7 +41,7 @@ export function WhatsAppSetup({ status, qrCode, autoSend, onAutoSendChange }: Wh
         <StatusIndicator status={status} />
       </div>
 
-      {status === "disconnected" && (
+      {(status === "disconnected" || status === "failed") && (
         <button
           onClick={handleConnect}
           disabled={connecting}
