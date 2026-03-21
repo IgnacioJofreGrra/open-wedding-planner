@@ -20,6 +20,7 @@ import {
 import { WhileYouWereGone } from "./WhileYouWereGone";
 import { Markdown } from "../shared/Markdown";
 import { useI18n } from "../../i18n/use-i18n";
+import { getCategoryLabel } from "../../i18n/category-labels";
 import type { TranslationKey } from "../../stores/ui-language-store";
 
 interface DashboardStats {
@@ -228,7 +229,7 @@ export function DashboardView() {
                   <div className="space-y-1">
                     {stats.vendors.byCategory.slice(0, 4).map((cat) => (
                       <div key={cat.categoryId} className="flex items-center justify-between text-sm">
-                        <span className="text-on-surface-secondary truncate">{cat.categoryName}</span>
+                        <span className="text-on-surface-secondary truncate">{getCategoryLabel(cat.categoryName, t)}</span>
                         <span className="text-on-surface-tertiary ml-2">{cat.count}</span>
                       </div>
                     ))}

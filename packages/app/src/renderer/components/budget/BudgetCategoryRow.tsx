@@ -4,6 +4,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CurrencyDisplay } from "../common/CurrencyDisplay";
 import { BudgetVendorRow } from "./BudgetVendorRow";
 import type { CategoryBudget } from "../../hooks/useBudget";
+import { useI18n } from "../../i18n/use-i18n";
+import { getCategoryLabel } from "../../i18n/category-labels";
 
 export function BudgetCategoryRow({
   data,
@@ -14,6 +16,7 @@ export function BudgetCategoryRow({
   currency: string;
   onDeleteEntry: (id: number) => void;
 }) {
+  const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -29,7 +32,7 @@ export function BudgetCategoryRow({
             ) : (
               <ChevronRight className="h-4 w-4 text-on-surface-secondary" />
             )}
-            {data.category.name}
+            {getCategoryLabel(data.category.name, t)}
             <span className="text-xs text-on-surface-tertiary font-normal">
               ({data.entries.length})
             </span>

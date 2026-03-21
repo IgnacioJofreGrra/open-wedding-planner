@@ -34,6 +34,38 @@ function withTruncation(t: any): any {
   return { ...t, execute: async (...args: any[]) => truncateToolResult(await orig(...args)) };
 }
 
+function isPersistenceClaim(text: string): boolean {
+  return /(he\s+(guardado|actualizado|registrado|persistido)|ya\s+(guard[eé]|actualic[eé]|registr[eé])|i\s+(have|ve)\s+(saved|updated|registered)|it\s+has\s+been\s+saved)/i.test(text);
+}
+
+function isWriteDbQueryArgs(args: unknown): boolean {
+  if (!args || typeof args !== "object") return false;
+  const q = (args as { query?: unknown }).query;
+  if (typeof q !== "string") return false;
+  const normalized = q.trim().toUpperCase();
+  return (
+    normalized.startsWith("INSERT") ||
+    normalized.startsWith("UPDATE") ||
+    normalized.startsWith("DELETE") ||
+    normalized.startsWith("REPLACE") ||
+    normalized.startsWith("ALTER") ||
+    normalized.startsWith("CREATE") ||
+    normalized.startsWith("DROP")
+  );
+}
+
+function hasWriteOperation(toolCalls: Array<{ toolName: string; args: unknown; result: unknown }>): boolean {
+  for (const tc of toolCalls) {
+    if (tc.toolName === "createVendor" || tc.toolName === "addVendorImages" || tc.toolName === "sendWhatsApp") {
+      return true;
+    }
+    if (tc.toolName === "dbQuery" && isWriteDbQueryArgs(tc.args)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export interface ToolFactoryContext {
   db: unknown;
   emit: (action: string, detail?: string) => void;
@@ -313,6 +345,12 @@ export class AgentRunner {
         } else {
           throw err;
         }
+      }
+
+      const claimsPersistence = isPersistenceClaim(text);
+      const performedWrites = hasWriteOperation(allToolCalls);
+      if (claimsPersistence && !performedWrites) {
+        text = `No pude confirmar persistencia real en las secciones porque no se ejecutaron escrituras en la base de datos. Puedo guardarlo ahora mismo si me confirmas que proceda.`;
       }
 
       ctx.emit("complete", `${config.name} finished`);

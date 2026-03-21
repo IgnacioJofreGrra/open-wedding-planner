@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useRequest, useMutation } from "../../hooks/useRequest";
 import { useI18n } from "../../i18n/use-i18n";
+import { getCategoryLabel } from "../../i18n/category-labels";
 import { Card, CardContent } from "../common/Card";
 import { Badge } from "../common/Badge";
 import {
@@ -172,7 +173,7 @@ export function WhileYouWereGone() {
                       {vendor.name}
                     </span>
                     {vendor.categoryName && (
-                      <Badge variant="default">{vendor.categoryName}</Badge>
+                      <Badge variant="default">{getCategoryLabel(vendor.categoryName, t)}</Badge>
                     )}
                   </button>
                 ))}

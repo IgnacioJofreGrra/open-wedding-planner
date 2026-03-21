@@ -10,6 +10,7 @@ import { EmptyState } from "../common/EmptyState";
 import { SkeletonCard } from "../common/Skeleton";
 import { useVendorFiltersStore } from "../../stores/vendor-filters-store";
 import { useI18n } from "../../i18n/use-i18n";
+import { getCategoryLabel } from "../../i18n/category-labels";
 
 const STATUS_ORDER: Record<string, number> = {
   booked: 0, quoted: 1, contacted: 2, researched: 3, rejected: 4,
@@ -152,7 +153,7 @@ export function VendorListView() {
             {groupedByCategory.map(({ category, vendors: groupVendors }) => (
               <section key={category.id}>
                 <div className="flex items-baseline gap-2 mb-3">
-                  <h2 className="text-lg font-semibold text-on-surface">{category.name}</h2>
+                  <h2 className="text-lg font-semibold text-on-surface">{getCategoryLabel(category.name, t)}</h2>
                   <span className="text-sm text-on-surface-tertiary">
                     {groupVendors.length}
                   </span>

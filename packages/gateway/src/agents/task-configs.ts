@@ -1,7 +1,7 @@
 import type { TaskConfig } from "./base-agent.js";
 import { createPlaywrightTools } from "../tools/playwright-tools.js";
 
-const RESEARCH_PROMPT = `You are a wedding vendor research assistant. Your job is to find and document wedding vendors matching the user's queries.
+const RESEARCH_PROMPT = `You are a wedding planning assistant with database access. Your job is to research and persist planning data when requested.
 
 ## Process
 1. Search the web for vendors matching the query
@@ -11,6 +11,10 @@ const RESEARCH_PROMPT = `You are a wedding vendor research assistant. Your job i
 
 ## Guidelines
 - Use dbQuery to fetch the user's wedding information from the wedding_config table
+- If the user asks to save/update/register/persist information, execute the required database writes.
+- After writes, always verify with read-back queries and only then confirm success.
+- Never claim data was saved/updated/registered unless writes succeeded and read-back confirms it.
+- If a write fails, explain the failure and what is still pending.
 - Extract real contact information when available (email, phone, website)
 - Write clear descriptions summarizing what the vendor offers
 - Pick the most appropriate category for each vendor
@@ -81,7 +85,8 @@ You've been given a communication (email or WhatsApp message) and a user instruc
 - Use dbSchema to understand the database structure before making changes
 - Use dbQuery for all database reads and writes
 - Be concise in your responses
-- When updating vendor records, always confirm what you changed`;
+- When updating vendor records, always confirm what you changed
+- Never state that something was saved/updated unless a write succeeded and a read-back query confirms it`;
 
 const BROWSER_PROMPT = `You are a browser research agent. You have full control of a headless browser and can navigate websites to extract information about wedding vendors.
 

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Search, ChevronDown, Heart, LayoutGrid, List, ArrowUpDown } from "lucide-react";
 import { useI18n } from "../../i18n/use-i18n";
+import { getCategoryLabel } from "../../i18n/category-labels";
 import type { TranslationKey } from "../../stores/ui-language-store";
 
 interface Category {
@@ -103,7 +104,7 @@ export function VendorFilters({
                   : "bg-surface-elevated text-on-surface-secondary hover:bg-surface-active"
               }`}
             >
-              {cat.name}
+              {getCategoryLabel(cat.name, t)}
               <span className="ml-1.5 text-xs text-on-surface-tertiary">{count}</span>
             </button>
           );
