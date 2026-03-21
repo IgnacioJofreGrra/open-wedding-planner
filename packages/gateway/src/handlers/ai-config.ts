@@ -21,8 +21,14 @@ export function registerAIConfigHandlers(
     const effectiveProvider = (row?.provider ?? memConfig.provider ?? "anthropic") as ProviderType;
     const effectiveBaseUrl = row?.baseUrl ?? memConfig.baseUrl ?? null;
     const storedKey = row?.apiKey || memConfig.apiKey;
-    const hasApiKey = !!(storedKey || (effectiveProvider === "anthropic" && process.env.ANTHROPIC_API_KEY));
-    const effectiveKey = storedKey || (effectiveProvider === "anthropic" ? process.env.ANTHROPIC_API_KEY : null) || null;
+    const envFallbackKey =
+      effectiveProvider === "anthropic"
+        ? process.env.ANTHROPIC_API_KEY
+        : effectiveProvider === "google"
+          ? process.env.GOOGLE_API_KEY
+          : null;
+    const hasApiKey = !!(storedKey || envFallbackKey);
+    const effectiveKey = storedKey || envFallbackKey || null;
     const maskedApiKey = effectiveKey
       ? `${effectiveKey.slice(0, 10)}...${effectiveKey.slice(-4)}`
       : null;

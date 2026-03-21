@@ -80,9 +80,10 @@ async function createProviderModel(config: AIProviderConfig): Promise<LanguageMo
       return openai(config.model);
     }
     case "google": {
-      if (!config.apiKey) throw new Error("Google provider requires an API key");
+      const key = config.apiKey || process.env.GOOGLE_API_KEY;
+      if (!key) throw new Error("Google provider requires an API key");
       const { createGoogleGenerativeAI } = await import("@ai-sdk/google");
-      const google = createGoogleGenerativeAI({ apiKey: config.apiKey });
+      const google = createGoogleGenerativeAI({ apiKey: key });
       return google(config.model);
     }
     case "openrouter":
@@ -163,6 +164,9 @@ export async function getBuiltInTools(
 export function hasAIProvider(): boolean {
   if (currentConfig.provider === "anthropic") {
     return !!(currentConfig.apiKey || process.env.ANTHROPIC_API_KEY);
+  }
+  if (currentConfig.provider === "google") {
+    return !!(currentConfig.apiKey || process.env.GOOGLE_API_KEY);
   }
   if (currentConfig.provider === "ollama") {
     return true;

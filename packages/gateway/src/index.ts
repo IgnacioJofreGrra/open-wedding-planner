@@ -2,6 +2,7 @@ import path from "node:path";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as sqliteVec from "sqlite-vec";
+import { config as loadDotEnv } from "dotenv";
 import * as schema from "./db/schema.js";
 import { pushSchema } from "./db/migrate.js";
 import { seedCategories } from "./db/seed.js";
@@ -43,6 +44,8 @@ import type {
 } from "@wedding-planner/shared";
 import { handleWhatsAppCommand } from "./channels/whatsapp-commands.js";
 import type { UserResponse } from "./tools/permission-wrapper.js";
+
+loadDotEnv();
 
 export interface GatewayOptions {
   port?: number;
