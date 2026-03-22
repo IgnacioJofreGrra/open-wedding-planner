@@ -72,12 +72,56 @@ function serveStaticFile(filePath: string, res: ServerResponse, cache = false) {
   return true;
 }
 
+function getBasicAuthConfig() {
+  const username = process.env.WP_BASIC_AUTH_USER?.trim();
+  const password = process.env.WP_BASIC_AUTH_PASSWORD?.trim();
+  const enabled = Boolean(username && password);
+  return { enabled, username, password };
+}
+
+function isAuthorized(
+  req: IncomingMessage,
+  authConfig: ReturnType<typeof getBasicAuthConfig>,
+): boolean {
+  if (!authConfig.enabled) return true;
+
+  const header = req.headers.authorization;
+  if (!header?.startsWith("Basic ")) return false;
+
+  const encoded = header.slice(6).trim();
+  let decoded: string;
+  try {
+    decoded = Buffer.from(encoded, "base64").toString("utf8");
+  } catch {
+    return false;
+  }
+
+  const separatorIndex = decoded.indexOf(":");
+  if (separatorIndex === -1) return false;
+
+  const username = decoded.slice(0, separatorIndex);
+  const password = decoded.slice(separatorIndex + 1);
+
+  return (
+    username === authConfig.username &&
+    password === authConfig.password
+  );
+}
+
+function writeUnauthorized(res: ServerResponse) {
+  res.writeHead(401, {
+    "WWW-Authenticate": 'Basic realm="Open Wedding Planner"',
+  });
+  res.end("Authentication required");
+}
+
 export async function createWsServer(options: WsServerOptions) {
   const { port, getState, router, db, imagesDir, onVapiWebhook } = options;
   const clients = new Set<AuthenticatedClient>();
   let eventSeq = 0;
 
   const webDistDir = getWebDistDir();
+  const authConfig = getBasicAuthConfig();
 
   const httpServer = createServer(
     (req: IncomingMessage, res: ServerResponse) => {
@@ -98,6 +142,11 @@ export async function createWsServer(options: WsServerOptions) {
             res.end("Invalid JSON");
           }
         });
+        return;
+      }
+
+      if (!isAuthorized(req, authConfig)) {
+        writeUnauthorized(res);
         return;
       }
 
@@ -163,7 +212,12 @@ export async function createWsServer(options: WsServerOptions) {
     httpServer.listen(port, resolve);
   });
 
-  wss.on("connection", (ws: WebSocket, _req: IncomingMessage) => {
+  wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
+    if (!isAuthorized(req, authConfig)) {
+      ws.close(4003, "Unauthorized");
+      return;
+    }
+
     const token = randomBytes(32).toString("hex");
     const client: AuthenticatedClient = {
       ws,
