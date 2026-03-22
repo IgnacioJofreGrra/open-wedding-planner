@@ -66,15 +66,15 @@ export function BudgetView() {
       />
 
       <div className="rounded-xl border border-border bg-surface-elevated overflow-hidden">
-        <table className="w-full text-sm">
+        <table className="w-full table-fixed text-sm">
           <thead>
             <tr className="border-b border-border text-on-surface-secondary">
-              <th className="px-4 py-3 text-left font-medium">{t("budget.table.category")}</th>
-              <th className="px-4 py-3 text-right font-medium">{t("budget.table.high")}</th>
-              <th className="px-4 py-3 text-right font-medium">{t("budget.table.low")}</th>
-              <th className="px-4 py-3 text-right font-medium">{t("budget.table.estimated")}</th>
-              <th className="px-4 py-3 text-right font-medium">{t("budget.table.paid")}</th>
-              <th className="px-4 py-3 text-right font-medium">{t("budget.table.balance")}</th>
+              <th className="w-1/6 px-4 py-3 text-left font-medium">{t("budget.table.category")}</th>
+              <th className="w-1/6 px-4 py-3 text-right font-medium">{t("budget.table.high")}</th>
+              <th className="w-1/6 px-4 py-3 text-right font-medium">{t("budget.table.low")}</th>
+              <th className="w-1/6 px-4 py-3 text-right font-medium">{t("budget.table.estimated")}</th>
+              <th className="w-1/6 px-4 py-3 text-right font-medium">{t("budget.table.paid")}</th>
+              <th className="w-1/6 px-4 py-3 text-right font-medium">{t("budget.table.balance")}</th>
             </tr>
           </thead>
           <tbody>
@@ -84,20 +84,20 @@ export function BudgetView() {
           </tbody>
           <tfoot>
             <tr className="border-t border-border font-semibold">
-              <td className="px-4 py-3">{t("budget.table.total")}</td>
-              <td className="px-4 py-3 text-right">
+              <td className="w-1/6 px-4 py-3">{t("budget.table.total")}</td>
+              <td className="w-1/6 px-4 py-3 text-right">
                 <CurrencyDisplay amount={data.grandTotals.high || null} currency={currency} />
               </td>
-              <td className="px-4 py-3 text-right">
+              <td className="w-1/6 px-4 py-3 text-right">
                 <CurrencyDisplay amount={data.grandTotals.low || null} currency={currency} />
               </td>
-              <td className="px-4 py-3 text-right">
+              <td className="w-1/6 px-4 py-3 text-right">
                 <CurrencyDisplay amount={data.grandTotals.estimatedActual || null} currency={currency} />
               </td>
-              <td className="px-4 py-3 text-right">
+              <td className="w-1/6 px-4 py-3 text-right">
                 <CurrencyDisplay amount={data.grandTotals.paid || null} currency={currency} />
               </td>
-              <td className="px-4 py-3 text-right">
+              <td className="w-1/6 px-4 py-3 text-right">
                 <CurrencyDisplay amount={data.grandTotals.balanceDue || null} currency={currency} />
               </td>
             </tr>

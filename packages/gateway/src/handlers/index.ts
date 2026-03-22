@@ -12,6 +12,7 @@ import { registerVendorImageHandlers } from "./vendor-images.js";
 import { registerQuoteHandlers } from "./quotes.js";
 import { registerBudgetHandlers } from "./budget.js";
 import { registerTaskHandlers } from "./tasks.js";
+import { registerGuestHandlers } from "./guests.js";
 import { registerCommunicationHandlers } from "./communications.js";
 import { registerResearchNoteHandlers } from "./research-notes.js";
 import { registerDashboardHandlers } from "./dashboard.js";
@@ -46,6 +47,7 @@ export function registerAllHandlers(
   registerQuoteHandlers(router);
   registerBudgetHandlers(router, broadcast);
   registerTaskHandlers(router, broadcast);
+  registerGuestHandlers(router, broadcast);
   registerCommunicationHandlers(router, deliveryQueue);
   registerResearchNoteHandlers(router);
   registerDashboardHandlers(router);

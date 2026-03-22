@@ -15,7 +15,7 @@ export function BudgetSummaryBar({
   currency = "EUR",
 }: BudgetSummaryBarProps) {
   const { t } = useI18n();
-  const budget = totalBudget ?? estimatedActual;
+  const budget = totalBudget != null ? totalBudget + estimatedActual : estimatedActual;
   const utilization = budget > 0 ? (estimatedActual / budget) * 100 : 0;
 
   let barColor = "bg-green-500";

@@ -16,6 +16,33 @@ interface WeddingConfig {
   languagePreferences: string[];
 }
 
+function parseBudgetInput(value: string): number | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  const cleaned = trimmed.replace(/[^\d.,-]/g, "");
+  if (!cleaned) return null;
+
+  const lastComma = cleaned.lastIndexOf(",");
+  const lastDot = cleaned.lastIndexOf(".");
+
+  let normalized = cleaned;
+  if (lastComma !== -1 && lastDot !== -1) {
+    const decimalSep = lastComma > lastDot ? "," : ".";
+    normalized =
+      decimalSep === ","
+        ? cleaned.replace(/\./g, "").replace(",", ".")
+        : cleaned.replace(/,/g, "");
+  } else if (lastComma !== -1) {
+    normalized = cleaned.replace(/\./g, "").replace(/,/g, ".");
+  } else {
+    normalized = cleaned.replace(/,/g, "");
+  }
+
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 export function WeddingConfigForm() {
   const { t } = useI18n();
   const { data, loading } = useRequest<WeddingConfig>("wedding-config.get");
@@ -38,9 +65,13 @@ export function WeddingConfigForm() {
     languagePreferences: ["en", "it"],
   });
   const [saved, setSaved] = useState(false);
+  const [totalBudgetInput, setTotalBudgetInput] = useState("");
 
   useEffect(() => {
-    if (data) setForm(data);
+    if (data) {
+      setForm(data);
+      setTotalBudgetInput(data.totalBudget != null ? String(data.totalBudget) : "");
+    }
   }, [data]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -93,11 +124,14 @@ export function WeddingConfigForm() {
 
         <Field label={t("settings.wedding.totalBudget")}>
           <input
-            type="number"
-            value={form.totalBudget ?? ""}
-            onChange={(e) =>
-              update("totalBudget", e.target.value ? parseFloat(e.target.value) : null)
-            }
+            type="text"
+            inputMode="decimal"
+            value={totalBudgetInput}
+            onChange={(e) => {
+              const raw = e.target.value;
+              setTotalBudgetInput(raw);
+              update("totalBudget", parseBudgetInput(raw));
+            }}
             placeholder="50000"
           />
         </Field>

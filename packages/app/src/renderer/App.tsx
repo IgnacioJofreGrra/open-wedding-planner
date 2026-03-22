@@ -14,6 +14,7 @@ import { InboxView } from "./components/inbox/InboxView";
 import { TimelineView } from "./components/timeline/TimelineView";
 import { ToolPermissionsPage } from "./components/settings/ToolPermissionsPage";
 import { DebugConsole } from "./components/debug/DebugConsole";
+import { GuestsView } from "./components/guests/GuestsView";
 
 export function App() {
   useEffect(() => {
@@ -34,6 +35,7 @@ export function App() {
           <Route path="calls" element={<CallsView />} />
           <Route path="inbox" element={<InboxView />} />
           <Route path="timeline" element={<TimelineView />} />
+          <Route path="guests" element={<GuestsView />} />
           <Route path="budget" element={<BudgetView />} />
           <Route path="settings" element={<SettingsView />} />
           <Route path="settings/tools" element={<ToolPermissionsPage />} />

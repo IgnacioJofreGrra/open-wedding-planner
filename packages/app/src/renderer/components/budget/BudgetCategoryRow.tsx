@@ -25,7 +25,7 @@ export function BudgetCategoryRow({
         onClick={() => setExpanded(!expanded)}
         className="border-b border-border cursor-pointer hover:bg-surface-hover transition-colors"
       >
-        <td className="py-3 px-4">
+        <td className="w-1/6 py-3 px-4">
           <div className="flex items-center gap-2 font-medium text-on-surface">
             {expanded ? (
               <ChevronDown className="h-4 w-4 text-on-surface-secondary" />
@@ -38,19 +38,19 @@ export function BudgetCategoryRow({
             </span>
           </div>
         </td>
-        <td className="py-3 px-4 text-right">
+        <td className="w-1/6 py-3 px-4 text-right">
           <CurrencyDisplay amount={data.totalHigh || null} currency={currency} className="font-medium" />
         </td>
-        <td className="py-3 px-4 text-right">
+        <td className="w-1/6 py-3 px-4 text-right">
           <CurrencyDisplay amount={data.totalLow || null} currency={currency} className="font-medium" />
         </td>
-        <td className="py-3 px-4 text-right">
+        <td className="w-1/6 py-3 px-4 text-right">
           <CurrencyDisplay amount={data.totalEstimatedActual || null} currency={currency} className="font-medium" />
         </td>
-        <td className="py-3 px-4 text-right">
+        <td className="w-1/6 py-3 px-4 text-right">
           <CurrencyDisplay amount={data.totalPaid || null} currency={currency} className="font-medium" />
         </td>
-        <td className="py-3 px-4 text-right">
+        <td className="w-1/6 py-3 px-4 text-right">
           <CurrencyDisplay amount={data.totalBalanceDue || null} currency={currency} className="font-medium" />
         </td>
       </tr>
@@ -63,7 +63,7 @@ export function BudgetCategoryRow({
             transition={{ duration: 0.15 }}
           >
             <td colSpan={6} className="p-0">
-              <table className="w-full">
+              <table className="w-full table-fixed">
                 <tbody>
                   {data.entries.map((entry) => (
                     <BudgetVendorRow key={entry.id} entry={entry} currency={currency} onDelete={onDeleteEntry} />

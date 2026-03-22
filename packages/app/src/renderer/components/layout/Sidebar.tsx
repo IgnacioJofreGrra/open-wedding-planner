@@ -6,6 +6,7 @@ import {
   Phone,
   Inbox,
   Calendar,
+  Users,
   DollarSign,
   Settings,
   PanelLeftClose,
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { to: "/calls", icon: Phone, labelKey: "nav.calls" },
   { to: "/inbox", icon: Inbox, labelKey: "nav.inbox" },
   { to: "/timeline", icon: Calendar, labelKey: "nav.timeline" },
+  { to: "/guests", icon: Users, labelKey: "nav.guests" },
   { to: "/budget", icon: DollarSign, labelKey: "nav.budget" },
 ] as const;
 

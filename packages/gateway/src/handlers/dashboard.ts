@@ -54,7 +54,9 @@ export function registerDashboardHandlers(router: Router) {
       .from(budgetEntries);
 
     const [config] = await db.select().from(weddingConfig);
-    const totalBudget = config?.budgetTotal ?? 0;
+    const baseBudget = config?.budgetTotal ?? 0;
+    const totalActual = budgetRows[0]?.totalActual ?? 0;
+    const dynamicBudget = baseBudget > 0 ? baseBudget + totalActual : totalActual;
 
     // Recent activity (last 10 agent tasks, excluding heartbeat)
     const recentTasks = await db
@@ -142,9 +144,9 @@ export function registerDashboardHandlers(router: Router) {
         total: Object.values(vendorsByStatus).reduce((a, b) => a + b, 0),
       },
       budget: {
-        total: totalBudget,
+        total: dynamicBudget,
         allocated: budgetRows[0]?.totalAllocated ?? 0,
-        actual: budgetRows[0]?.totalActual ?? 0,
+        actual: totalActual,
         paid: budgetRows[0]?.totalPaid ?? 0,
         currency: config?.currency ?? "EUR",
       },

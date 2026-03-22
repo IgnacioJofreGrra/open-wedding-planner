@@ -167,6 +167,24 @@ export const tasks = sqliteTable("tasks", {
     .default(sql`(datetime('now'))`),
 });
 
+export const guests = sqliteTable("guests", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  age: integer("age"),
+  gender: text("gender"),
+  relationship: text("relationship"),
+  dietaryRestrictions: text("dietary_restrictions"),
+  menuChoice: text("menu_choice").notNull().default("Victoria Plaza"),
+  isChild: integer("is_child").notNull().default(0),
+  notes: text("notes"),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(datetime('now'))`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`(datetime('now'))`),
+});
+
 export const agentTasks = sqliteTable("agent_tasks", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   type: text("type").notNull(),
