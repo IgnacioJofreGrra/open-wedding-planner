@@ -36,6 +36,43 @@ export function spawnGateway(options?: {
   browserExe?: string;
 }): Promise<number> {
   return new Promise((resolve, reject) => {
+    let stdoutBuffer = "";
+    let stderrBuffer = "";
+    let settled = false;
+
+    const handleStdoutLine = (line: string) => {
+      if (!line) return;
+      if (line.startsWith(GATEWAY_READY_PREFIX)) {
+        clearTimeout(timeout);
+        if (settled) return;
+        settled = true;
+        const port = parseInt(line.slice(GATEWAY_READY_PREFIX.length), 10);
+        resolve(port);
+      } else {
+        pushLog("stdout", line);
+      }
+    };
+
+    const handleStderrLine = (line: string) => {
+      if (!line) return;
+      console.error("[gateway]", line);
+      pushLog("stderr", line);
+    };
+
+    const flushLines = (
+      chunk: string,
+      buffer: string,
+      onLine: (line: string) => void,
+    ) => {
+      const combined = buffer + chunk;
+      const lines = combined.split(/\r?\n/);
+      const rest = lines.pop() ?? "";
+      for (const line of lines) {
+        onLine(line.trim());
+      }
+      return rest;
+    };
+
     const gatewayPath = path.join(
       __dirname,
       "../../..",
@@ -54,6 +91,8 @@ export function spawnGateway(options?: {
         ...(options?.browserExe
           ? { BROWSER_EXECUTABLE_PATH: options.browserExe }
           : {}),
+        // Avoid local port collisions (e.g. 4590 already used by a server instance).
+        WP_GATEWAY_PORT: "0",
         // In packaged app, web-dist is in resourcesPath. In dev, it sits next to gateway/dist/.
         WEB_DIST_PATH: app.isPackaged
           ? path.join(process.resourcesPath, "web-dist")
@@ -74,34 +113,39 @@ export function spawnGateway(options?: {
     });
 
     const timeout = setTimeout(() => {
+      if (settled) return;
+      settled = true;
       reject(new Error("Gateway startup timed out"));
     }, 10000);
 
     gatewayProcess.stdout?.on("data", (data: Buffer) => {
-      const line = data.toString().trim();
-      if (line.startsWith(GATEWAY_READY_PREFIX)) {
-        clearTimeout(timeout);
-        const port = parseInt(line.slice(GATEWAY_READY_PREFIX.length), 10);
-        resolve(port);
-      } else {
-        pushLog("stdout", line);
-      }
+      stdoutBuffer = flushLines(data.toString(), stdoutBuffer, handleStdoutLine);
     });
 
     gatewayProcess.stderr?.on("data", (data: Buffer) => {
-      const line = data.toString().trim();
-      console.error("[gateway]", line);
-      pushLog("stderr", line);
+      stderrBuffer = flushLines(data.toString(), stderrBuffer, handleStderrLine);
     });
 
     gatewayProcess.on("error", (err) => {
       clearTimeout(timeout);
+      if (settled) return;
+      settled = true;
       reject(err);
     });
 
     gatewayProcess.on("exit", (code) => {
+      if (stdoutBuffer.trim()) {
+        handleStdoutLine(stdoutBuffer.trim());
+        stdoutBuffer = "";
+      }
+      if (stderrBuffer.trim()) {
+        handleStderrLine(stderrBuffer.trim());
+        stderrBuffer = "";
+      }
       if (code !== 0 && code !== null) {
         clearTimeout(timeout);
+        if (settled) return;
+        settled = true;
         reject(new Error(`Gateway exited with code ${code}`));
       }
       gatewayProcess = null;

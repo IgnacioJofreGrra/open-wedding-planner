@@ -110,6 +110,13 @@ app.whenReady().then(async () => {
   }
 
   globalShortcut.register("CommandOrControl+Shift+D", toggleDebugWindow);
+}).catch((err: unknown) => {
+  const message = err instanceof Error ? err.message : String(err);
+  dialog.showErrorBox(
+    "No se pudo iniciar Open Wedding Planner",
+    `Fallo al iniciar el gateway local.\n\n${message}`,
+  );
+  app.quit();
 });
 
 app.on("activate", () => {

@@ -53,7 +53,14 @@ export interface GatewayOptions {
 }
 
 export async function startGateway(options: GatewayOptions = {}) {
-  const port = options.port ?? DEFAULT_GATEWAY_PORT;
+  const envPortRaw = process.env.WP_GATEWAY_PORT ?? process.env.GATEWAY_PORT;
+  const envPort =
+    envPortRaw && envPortRaw.trim() !== ""
+      ? Number.parseInt(envPortRaw, 10)
+      : undefined;
+  const port =
+    options.port ??
+    (Number.isFinite(envPort) && envPort !== undefined ? envPort : DEFAULT_GATEWAY_PORT);
   const dbPath = options.dbPath ?? getDbPath();
 
   // 1. Create database
@@ -662,7 +669,7 @@ export async function startGateway(options: GatewayOptions = {}) {
   deliveryQueue.startProcessing(5000);
 
   // 10. Print ready signal
-  console.log(`${GATEWAY_READY_PREFIX}${port}`);
+  console.log(`${GATEWAY_READY_PREFIX}${wsServer.port}`);
 
   // Return cleanup function
   async function stop() {

@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import {
   createServer,
   type IncomingMessage,
@@ -76,7 +76,29 @@ function getBasicAuthConfig() {
   const username = process.env.WP_BASIC_AUTH_USER?.trim();
   const password = process.env.WP_BASIC_AUTH_PASSWORD?.trim();
   const enabled = Boolean(username && password);
-  return { enabled, username, password };
+  const cookieName = "wp_auth";
+  const cookieValue = enabled
+    ? createHash("sha256")
+        .update(`${username}:${password}`)
+        .digest("hex")
+    : "";
+  return { enabled, username, password, cookieName, cookieValue };
+}
+
+function parseCookies(header: string | undefined): Record<string, string> {
+  if (!header) return {};
+  const out: Record<string, string> = {};
+  const parts = header.split(";");
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    const idx = trimmed.indexOf("=");
+    if (idx <= 0) continue;
+    const key = trimmed.slice(0, idx).trim();
+    const value = trimmed.slice(idx + 1).trim();
+    if (key) out[key] = value;
+  }
+  return out;
 }
 
 function isAuthorized(
@@ -86,26 +108,49 @@ function isAuthorized(
   if (!authConfig.enabled) return true;
 
   const header = req.headers.authorization;
-  if (!header?.startsWith("Basic ")) return false;
+  if (header?.startsWith("Basic ")) {
+    const encoded = header.slice(6).trim();
+    let decoded: string;
+    try {
+      decoded = Buffer.from(encoded, "base64").toString("utf8");
+    } catch {
+      decoded = "";
+    }
 
-  const encoded = header.slice(6).trim();
-  let decoded: string;
-  try {
-    decoded = Buffer.from(encoded, "base64").toString("utf8");
-  } catch {
-    return false;
+    const separatorIndex = decoded.indexOf(":");
+    if (separatorIndex !== -1) {
+      const username = decoded.slice(0, separatorIndex);
+      const password = decoded.slice(separatorIndex + 1);
+
+      if (username === authConfig.username && password === authConfig.password) {
+        return true;
+      }
+    }
   }
 
-  const separatorIndex = decoded.indexOf(":");
-  if (separatorIndex === -1) return false;
+  const cookies = parseCookies(req.headers.cookie);
+  return cookies[authConfig.cookieName] === authConfig.cookieValue;
+}
 
-  const username = decoded.slice(0, separatorIndex);
-  const password = decoded.slice(separatorIndex + 1);
-
-  return (
-    username === authConfig.username &&
-    password === authConfig.password
-  );
+function setAuthCookie(
+  req: IncomingMessage,
+  res: ServerResponse,
+  authConfig: ReturnType<typeof getBasicAuthConfig>,
+) {
+  if (!authConfig.enabled) return;
+  const forwardedProto = (req.headers["x-forwarded-proto"] ?? "")
+    .toString()
+    .toLowerCase();
+  const isSecure = forwardedProto === "https" || Boolean((req.socket as any).encrypted);
+  const cookie = [
+    `${authConfig.cookieName}=${authConfig.cookieValue}`,
+    "Path=/",
+    "HttpOnly",
+    "SameSite=Lax",
+    "Max-Age=86400",
+    ...(isSecure ? ["Secure"] : []),
+  ].join("; ");
+  res.setHeader("Set-Cookie", cookie);
 }
 
 function writeUnauthorized(res: ServerResponse) {
@@ -149,6 +194,8 @@ export async function createWsServer(options: WsServerOptions) {
         writeUnauthorized(res);
         return;
       }
+
+      setAuthCookie(req, res, authConfig);
 
       if (req.method !== "GET" || !req.url) {
         res.writeHead(404);
@@ -211,6 +258,10 @@ export async function createWsServer(options: WsServerOptions) {
   await new Promise<void>((resolve) => {
     httpServer.listen(port, resolve);
   });
+
+  const addr = httpServer.address();
+  const boundPort =
+    typeof addr === "object" && addr !== null ? addr.port : port;
 
   wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
     if (!isAuthorized(req, authConfig)) {
@@ -318,5 +369,9 @@ export async function createWsServer(options: WsServerOptions) {
     });
   }
 
-  return { wss, broadcast, close };
+  return {
+    port: boundPort,
+    close,
+    broadcast,
+  };
 }
