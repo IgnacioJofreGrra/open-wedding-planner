@@ -110,7 +110,7 @@ export async function startGateway(options: GatewayOptions = {}) {
     };
   };
 
-  registerAllHandlers(
+  const handlerRegistry = registerAllHandlers(
     router,
     deliveryQueue,
     gogManager,
@@ -145,6 +145,7 @@ export async function startGateway(options: GatewayOptions = {}) {
     db,
     imagesDir,
     onVapiWebhook: (payload: unknown) => handleVapiWebhook?.(payload),
+    onGoogleOAuthCallback: handlerRegistry.handleGoogleOAuthCallback,
   });
 
   broadcastFn = (event) => wsServer.broadcast(event);

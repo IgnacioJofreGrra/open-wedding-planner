@@ -6,8 +6,92 @@ import { createServer, type Server } from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { getDataDir } from "../config/paths.js";
+import type { ChildProcess } from "node:child_process";
+
+interface PendingGoogleOAuth {
+  child: ChildProcess;
+  email: string;
+  originalRedirectUri: string;
+  timeoutId: NodeJS.Timeout;
+}
+
+export interface GoogleOAuthCallbackResult {
+  ok: boolean;
+  message: string;
+}
 
 export function registerGoogleAuthHandlers(router: Router, gogManager: GogManager) {
+  const pendingOAuthByState = new Map<string, PendingGoogleOAuth>();
+
+  function resolvePublicBaseUrl(raw: string | undefined): string | null {
+    if (!raw) return null;
+    let parsed: URL;
+    try {
+      parsed = new URL(raw);
+    } catch {
+      return null;
+    }
+    const host = parsed.hostname.toLowerCase();
+    if (host === "localhost" || host === "127.0.0.1") {
+      return null;
+    }
+    return parsed.origin;
+  }
+
+  async function handleOAuthCallback(
+    callbackUrl: string,
+  ): Promise<GoogleOAuthCallbackResult> {
+    let parsed: URL;
+    try {
+      parsed = new URL(callbackUrl);
+    } catch {
+      return { ok: false, message: "OAuth callback URL invalida" };
+    }
+
+    const state = parsed.searchParams.get("state");
+    if (!state) {
+      return { ok: false, message: "OAuth callback sin state" };
+    }
+
+    const pending = pendingOAuthByState.get(state);
+    if (!pending) {
+      return {
+        ok: false,
+        message: "No hay una autorizacion OAuth pendiente o ya expiro.",
+      };
+    }
+
+    pendingOAuthByState.delete(state);
+    clearTimeout(pending.timeoutId);
+
+    const localCallback = new URL(pending.originalRedirectUri);
+    localCallback.search = parsed.search;
+
+    if (!pending.child.stdin) {
+      return {
+        ok: false,
+        message: "No se pudo completar OAuth (stdin no disponible).",
+      };
+    }
+
+    console.log(`Google OAuth callback received for ${pending.email}`);
+    pending.child.stdin.write(localCallback.toString() + "\n");
+    pending.child.stdin.end();
+
+    pending.child.on("close", (code) => {
+      if (code === 0) {
+        console.log(`Google account ${pending.email} connected successfully`);
+      } else {
+        console.error(`gog auth exited with code ${code}`);
+      }
+    });
+
+    return {
+      ok: true,
+      message: "Autorizacion completada. Ya puedes volver a Open Wedding Planner.",
+    };
+  }
+
   // Save credentials — accepts either a file path or raw JSON content
   router.register("google.set-credentials", async (db, params) => {
     const { credentialsPath, credentialsJson } = params as {
@@ -60,7 +144,11 @@ export function registerGoogleAuthHandlers(router: Router, gogManager: GogManage
 
   // Start OAuth flow — returns auth URL for the frontend to open
   router.register("google.connect", async (db, params) => {
-    const { email, services } = params as { email: string; services: string[] };
+    const { email, services, publicBaseUrl } = params as {
+      email: string;
+      services: string[];
+      publicBaseUrl?: string;
+    };
 
     const serviceArg = services.join(",");
 
@@ -81,7 +169,7 @@ export function registerGoogleAuthHandlers(router: Router, gogManager: GogManage
     ]);
 
     // Collect stdout to extract the auth URL
-    const authUrl = await new Promise<string>((resolve, reject) => {
+    const rawAuthUrl = await new Promise<string>((resolve, reject) => {
       let output = "";
       const timeout = setTimeout(() => reject(new Error("Timed out waiting for auth URL from gog")), 10000);
 
@@ -107,19 +195,58 @@ export function registerGoogleAuthHandlers(router: Router, gogManager: GogManage
       });
     });
 
-    // Extract redirect_uri from the auth URL to know which port gog expects
-    const authUrlObj = new URL(authUrl);
+    const authUrlObj = new URL(rawAuthUrl);
     const redirectUri = authUrlObj.searchParams.get("redirect_uri");
     if (!redirectUri) {
       child.kill();
-      throw new Error(`No redirect_uri in auth URL: ${authUrl}`);
+      throw new Error(`No redirect_uri in auth URL: ${rawAuthUrl}`);
     }
-    const redirectUrl = new URL(redirectUri);
-    const callbackPort = parseInt(redirectUrl.port || "80", 10);
-    const callbackPath = redirectUrl.pathname;
 
-    // Listen on gog's expected port/path to capture the OAuth callback
-    const waitForCallback = listenForCallback(callbackPort, callbackPath);
+    const publicOrigin =
+      resolvePublicBaseUrl(publicBaseUrl) ??
+      resolvePublicBaseUrl(process.env.WP_PUBLIC_BASE_URL);
+
+    let authUrl = rawAuthUrl;
+    const state = authUrlObj.searchParams.get("state");
+
+    if (publicOrigin && state) {
+      const publicRedirect = new URL("/oauth2/callback", publicOrigin).toString();
+      authUrlObj.searchParams.set("redirect_uri", publicRedirect);
+      authUrl = authUrlObj.toString();
+
+      const timeoutId = setTimeout(() => {
+        pendingOAuthByState.delete(state);
+      }, 5 * 60 * 1000);
+
+      pendingOAuthByState.set(state, {
+        child,
+        email,
+        originalRedirectUri: redirectUri,
+        timeoutId,
+      });
+    } else {
+      const redirectUrl = new URL(redirectUri);
+      const callbackPort = parseInt(redirectUrl.port || "80", 10);
+      const callbackPath = redirectUrl.pathname;
+
+      // Fallback for local desktop/Electron flows.
+      const waitForCallback = listenForCallback(callbackPort, callbackPath);
+
+      // When our callback server receives the redirect, pipe the URL to gog's stdin
+      waitForCallback.then(async (callbackUrl) => {
+        console.log(`Google OAuth callback received for ${email}`);
+        child.stdin!.write(callbackUrl + "\n");
+        child.stdin!.end();
+
+        child.on("close", (code) => {
+          if (code === 0) {
+            console.log(`Google account ${email} connected successfully`);
+          } else {
+            console.error(`gog auth exited with code ${code}`);
+          }
+        });
+      });
+    }
 
     // Store connection info
     const [existing] = await db.select().from(googleConfig).limit(1);
@@ -132,21 +259,6 @@ export function registerGoogleAuthHandlers(router: Router, gogManager: GogManage
     } else {
       await db.insert(googleConfig).values(values);
     }
-
-    // When our callback server receives the redirect, pipe the URL to gog's stdin
-    waitForCallback.then(async (callbackUrl) => {
-      console.log(`Google OAuth callback received for ${email}`);
-      child.stdin!.write(callbackUrl + "\n");
-      child.stdin!.end();
-
-      child.on("close", (code) => {
-        if (code === 0) {
-          console.log(`Google account ${email} connected successfully`);
-        } else {
-          console.error(`gog auth exited with code ${code}`);
-        }
-      });
-    });
 
     return { authUrl };
   });
@@ -191,6 +303,10 @@ export function registerGoogleAuthHandlers(router: Router, gogManager: GogManage
     }
     return { ok: true };
   });
+
+  return {
+    handleOAuthCallback,
+  };
 }
 
 /** Spins up a one-shot HTTP server on the exact port/path gog expects for the OAuth redirect */

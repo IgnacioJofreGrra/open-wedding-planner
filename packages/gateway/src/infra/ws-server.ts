@@ -28,6 +28,9 @@ export interface WsServerOptions {
   db?: Db;
   imagesDir?: string;
   onVapiWebhook?: (payload: unknown) => void;
+  onGoogleOAuthCallback?: (
+    callbackUrl: string,
+  ) => Promise<{ ok: boolean; message: string }>;
 }
 
 const MIME_TYPES: Record<string, string> = {
@@ -66,7 +69,12 @@ function serveStaticFile(filePath: string, res: ServerResponse, cache = false) {
     "Content-Type": contentType,
     ...(cache
       ? { "Cache-Control": "public, max-age=31536000, immutable" }
-      : {}),
+      : {
+          "Cache-Control": "no-store, no-cache, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+          Vary: "Authorization, Cookie",
+        }),
   });
   fs.createReadStream(filePath).pipe(res);
   return true;
@@ -156,12 +164,24 @@ function setAuthCookie(
 function writeUnauthorized(res: ServerResponse) {
   res.writeHead(401, {
     "WWW-Authenticate": 'Basic realm="Open Wedding Planner"',
+    "Cache-Control": "no-store, no-cache, must-revalidate",
+    Pragma: "no-cache",
+    Expires: "0",
+    Vary: "Authorization, Cookie",
   });
   res.end("Authentication required");
 }
 
 export async function createWsServer(options: WsServerOptions) {
-  const { port, getState, router, db, imagesDir, onVapiWebhook } = options;
+  const {
+    port,
+    getState,
+    router,
+    db,
+    imagesDir,
+    onVapiWebhook,
+    onGoogleOAuthCallback,
+  } = options;
   const clients = new Set<AuthenticatedClient>();
   let eventSeq = 0;
 
@@ -187,6 +207,51 @@ export async function createWsServer(options: WsServerOptions) {
             res.end("Invalid JSON");
           }
         });
+        return;
+      }
+
+      // Handle Google OAuth callback from browser (public web flow)
+      const oauthPath = req.url ? req.url.split("?")[0] : "";
+      if (req.method === "GET" && oauthPath === "/oauth2/callback") {
+        if (!onGoogleOAuthCallback || !req.url) {
+          res.writeHead(500, { "Content-Type": "text/html; charset=utf-8" });
+          res.end("<html><body><h1>OAuth no disponible</h1></body></html>");
+          return;
+        }
+
+        const forwardedProto = (req.headers["x-forwarded-proto"] ?? "")
+          .toString()
+          .split(",")[0]
+          .trim()
+          .toLowerCase();
+        const scheme =
+          forwardedProto || (Boolean((req.socket as any).encrypted) ? "https" : "http");
+        const host = req.headers.host ?? `127.0.0.1:${port}`;
+        const callbackUrl = `${scheme}://${host}${req.url}`;
+
+        onGoogleOAuthCallback(callbackUrl)
+          .then((result) => {
+            res.writeHead(result.ok ? 200 : 400, {
+              "Content-Type": "text/html; charset=utf-8",
+              "Cache-Control": "no-store, no-cache, must-revalidate",
+              Pragma: "no-cache",
+              Expires: "0",
+            });
+            res.end(
+              `<html><body><h1>${result.ok ? "Authorization complete" : "Authorization failed"}</h1><p>${result.message}</p><p>You can close this tab and return to Open Wedding Planner.</p></body></html>`,
+            );
+          })
+          .catch((err: Error) => {
+            res.writeHead(500, {
+              "Content-Type": "text/html; charset=utf-8",
+              "Cache-Control": "no-store, no-cache, must-revalidate",
+              Pragma: "no-cache",
+              Expires: "0",
+            });
+            res.end(
+              `<html><body><h1>Authorization failed</h1><p>${err.message}</p></body></html>`,
+            );
+          });
         return;
       }
 

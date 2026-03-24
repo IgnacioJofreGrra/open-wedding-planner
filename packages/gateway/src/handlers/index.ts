@@ -39,6 +39,10 @@ export function registerAllHandlers(
   sqlite?: Database.Database,
   broadcast?: (event: GatewayEvent) => void,
 ) {
+  let handleGoogleOAuthCallback:
+    | ((callbackUrl: string) => Promise<{ ok: boolean; message: string }>)
+    | undefined;
+
   registerWeddingConfigHandlers(router);
   registerCategoryHandlers(router);
   registerVendorHandlers(router, broadcast);
@@ -58,7 +62,8 @@ export function registerAllHandlers(
   registerResearchThreadHandlers(router, broadcast);
 
   if (gogManager) {
-    registerGoogleAuthHandlers(router, gogManager);
+    const googleAuth = registerGoogleAuthHandlers(router, gogManager);
+    handleGoogleOAuthCallback = googleAuth.handleOAuthCallback;
   }
 
   registerGuardrailsConfigHandlers(router);
@@ -78,4 +83,8 @@ export function registerAllHandlers(
     const { content } = params as { content: string };
     return importVendorsCsv(db, content);
   });
+
+  return {
+    handleGoogleOAuthCallback,
+  };
 }

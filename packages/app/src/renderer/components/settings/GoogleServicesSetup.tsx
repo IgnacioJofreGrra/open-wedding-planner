@@ -41,7 +41,11 @@ export function GoogleServicesSetup() {
   const { data: status, refetch } = useRequest<GoogleStatus>("google.status");
   const { data: weddingConfig } = useRequest<WeddingConfig>("wedding-config.get");
   const { mutate: setCredentials, loading: settingCreds } = useMutation("google.set-credentials");
-  const { mutate: connect, loading: connecting } = useMutation<{ email: string; services: string[] }, GoogleConnectResult>("google.connect");
+  const { mutate: connect, loading: connecting } = useMutation<{
+    email: string;
+    services: string[];
+    publicBaseUrl?: string;
+  }, GoogleConnectResult>("google.connect");
   const { mutate: disconnect } = useMutation("google.disconnect");
   const { mutate: updateAutoSend } = useMutation("google.update-auto-send");
 
@@ -107,7 +111,11 @@ export function GoogleServicesSetup() {
     if (!email) return;
     setConnectError(null);
     try {
-      const result = await connect({ email, services: selectedServices });
+      const result = await connect({
+        email,
+        services: selectedServices,
+        ...(window.electronAPI ? {} : { publicBaseUrl: window.location.origin }),
+      });
       if (result?.authUrl) {
         openExternal(result.authUrl);
         const interval = setInterval(async () => {
